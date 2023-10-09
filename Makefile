@@ -1,21 +1,43 @@
 CC = gcc
 SRCDIR = ./src
 BUILD_DIR = ./build
-PROJECT_NAME = bankApp
 
 # Add flags if needed
-CFLAGS = -lcjson
+CFLAGS = -lpthread
 
-.PHONY: build run clean
+# List of source files for monitor and simulador
+MONITOR_SRC = $(SRCDIR)/monitor.c
+SIMULADOR_SRC = $(SRCDIR)/simulador.c
 
-default:
-	$(CC) $(SRCDIR)/*.c $(CFLAGS) -o $(BUILD_DIR)/$(PROJECT_NAME) && $(BUILD_DIR)/$(PROJECT_NAME)
+# List of object files for monitor and simulador
+MONITOR_OBJ = $(BUILD_DIR)/monitor
+SIMULADOR_OBJ = $(BUILD_DIR)/simulador
+
+.PHONY: build run-simulador run-monitor clean
+
+default: build
+
 init:
-	mkdir -p build src
+	mkdir -p $(BUILD_DIR) $(SRCDIR)
 	touch $(SRCDIR)/main.c
-build:
-	$(CC) $(SRCDIR)/*.c $(CFLAGS) -o $(BUILD_DIR)/$(PROJECT_NAME)
-run:
-	$(BUILD_DIR)/$(PROJECT_NAME)
+
+build: monitor simulador
+
+monitor: $(MONITOR_OBJ)
+
+$(MONITOR_OBJ): $(MONITOR_SRC)
+	$(CC) $< $(CFLAGS) -o $@
+
+simulador: $(SIMULADOR_OBJ)
+
+$(SIMULADOR_OBJ): $(SIMULADOR_SRC)
+	$(CC) $< $(CFLAGS) -o $@
+
+run-monitor: monitor
+	$(MONITOR_OBJ)
+
+run-simulador: simulador
+	$(SIMULADOR_OBJ)
+
 clean:
-	rm $(BUILD_DIR)/*
+	rm -f $(BUILD_DIR)/*
