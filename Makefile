@@ -6,8 +6,8 @@ BUILD_DIR = ./build
 CFLAGS = -lpthread
 
 # List of source files for monitor and simulador
-MONITOR_SRC = $(SRCDIR)/monitor.c
-SIMULADOR_SRC = $(SRCDIR)/simulador.c
+MONITOR_SRC = $(SRCDIR)/monitor/*.c
+SIMULADOR_SRC = $(SRCDIR)/simulador/*.c
 
 # List of object files for monitor and simulador
 MONITOR_OBJ = $(BUILD_DIR)/monitor
