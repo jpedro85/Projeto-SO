@@ -5,6 +5,9 @@ BUILD_DIR = ./build
 # Add flags if needed
 CFLAGS = -lpthread
 
+# Add common files if needed
+COMMONFILES = 
+
 # List of source files for monitor and simulador
 MONITOR_SRC = $(SRCDIR)/monitor/*.c
 SIMULADOR_SRC = $(SRCDIR)/simulador/*.c
@@ -15,29 +18,25 @@ SIMULADOR_OBJ = $(BUILD_DIR)/simulador
 
 .PHONY: build run-simulador run-monitor clean
 
-default: build
+default: build 
 
 init:
-	mkdir -p $(BUILD_DIR) $(SRCDIR)
-	touch $(SRCDIR)/main.c
+    mkdir -p $(BUILD_DIR) $(SRCDIR)
+    touch $(SRCDIR)/main.c
 
 build: monitor simulador
 
-monitor: $(MONITOR_OBJ)
+monitor:
+    $(CC) -g $(MONITOR_SRC) $(COMMONFILES) $(CFLAGS) -o $(MONITOR_OBJ)
 
-$(MONITOR_OBJ): $(MONITOR_SRC)
-	$(CC) $< $(CFLAGS) -o $@
+simulador:
+    $(CC) -g $(SIMULADOR_SRC) $(COMMONFILES) $(CFLAGS) -o $(MONITOR_OBJ)
 
-simulador: $(SIMULADOR_OBJ)
+run-monitor:
+    $(MONITOR_OBJ)
 
-$(SIMULADOR_OBJ): $(SIMULADOR_SRC)
-	$(CC) $< $(CFLAGS) -o $@
-
-run-monitor: monitor
-	$(MONITOR_OBJ)
-
-run-simulador: simulador
-	$(SIMULADOR_OBJ)
+run-simulador:
+    $(SIMULADOR_OBJ)
 
 clean:
-	rm -f $(BUILD_DIR)/*
+    rm -f $(BUILD_DIR)/*
