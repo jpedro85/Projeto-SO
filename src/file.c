@@ -5,7 +5,16 @@
 
 char *readJSON(char *fileName);
 
-cJSON *loadJSON(char *fileName)
+/**
+ * The function `loadAndParseJSONFromFile` loads and parses a JSON file, returning a cJSON object if
+ * successful or NULL if there was an error.
+ * 
+ * @param fileName The `fileName` parameter is a string that represents the name of the file from which
+ * the JSON content will be loaded and parsed.
+ * 
+ * @return a pointer to a cJSON structure.
+ */
+cJSON *loadAndParseJSONFromFile(char *fileName)
 {
     char *jsonContent = readJSON(fileName);
 
