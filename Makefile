@@ -6,7 +6,7 @@ BUILD_DIR = ./build
 CFLAGS = -lpthread
 
 # Add common files if needed
-COMMONFILES = 
+COMMONFILES = $(SRCDIR)/acontecimentos.c
 
 # List of source files for monitor and simulador
 MONITOR_SRC = $(SRCDIR)/monitor/*.c
@@ -21,22 +21,21 @@ SIMULADOR_OBJ = $(BUILD_DIR)/simulador
 default: build 
 
 init:
-    mkdir -p $(BUILD_DIR) $(SRCDIR)
-    touch $(SRCDIR)/main.c
+	mkdir -p $(BUILD_DIR) $(SRCDIR)
 
 build: monitor simulador
 
 monitor:
-    $(CC) -g $(MONITOR_SRC) $(COMMONFILES) $(CFLAGS) -o $(MONITOR_OBJ)
+	$(CC) -g $(MONITOR_SRC) $(COMMONFILES) $(CFLAGS) -o $(MONITOR_OBJ)
 
 simulador:
-    $(CC) -g $(SIMULADOR_SRC) $(COMMONFILES) $(CFLAGS) -o $(MONITOR_OBJ)
+	$(CC) -g $(SIMULADOR_SRC) $(COMMONFILES) $(CFLAGS) -o $(SIMULADOR_OBJ)
 
 run-monitor:
-    $(MONITOR_OBJ)
+	$(MONITOR_OBJ)
 
 run-simulador:
-    $(SIMULADOR_OBJ)
+	$(SIMULADOR_OBJ)
 
 clean:
-    rm -f $(BUILD_DIR)/*
+	rm -f $(BUILD_DIR)/*
