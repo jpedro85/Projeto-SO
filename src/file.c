@@ -84,19 +84,5 @@ char *readJSON(char *fileName)
         return NULL;
     }
 
-    // cJSON *loadedContent = cJSON_Parse(buffer);
-    // free(buffer);
-
-    // if (loadedContent == NULL)
-    // {
-    //     const char *errorPtr = cJSON_GetErrorPtr();
-    //     if (errorPtr != NULL)
-    //     {
-    //         printf("Loading Error: %s\n", errorPtr);
-    //     }
-    //     cJSON_Delete(loadedContent);
-    //     return NULL;
-    // }
-
     return buffer;
 }
