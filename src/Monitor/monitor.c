@@ -1,5 +1,5 @@
 #include "registo.h"
-#include "../acontecimentos.h"
+#include "../events.h"
 
 int main() {
     FILE* file = fopen("registo.txt", "w");
@@ -8,11 +8,7 @@ int main() {
         return 1; // Return an error code to indicate failure
     }
 
-    int entity = 1; // Replace with your desired entity value
-    int acontecimento = 2; // Replace with your desired acontecimento value
-    int tempo = 3; // Replace with your desired tempo value
-
-    escreveRegisto(file, entity, acontecimento, tempo);
+    writeRecord(file, 1, 2, 3);
 
     fclose(file); // Close the file
 
