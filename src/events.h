@@ -8,4 +8,4 @@ enum events{
     UserLeft
 };
 
-char* mensagemAcontecimento(int event);
+char* eventMessage(int event);
