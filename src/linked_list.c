@@ -102,10 +102,10 @@ listItem* getListItemByIndex_LinkedList(linkedList* head, int index){
 void removeItemByIndex_LinkedList(linkedList* head, int index){
 
 	if( isEmpty_LinkedList(head) )
-		printf("Can not remove item from Empty List.\n");
+		printError("Can not remove item from Empty List.\n");
 	
 	else if(index >= head->length || index < 0)
-		printf("Index out of range.\n");
+		printError("Index out of range.\n");
 
 	else {
 
@@ -140,4 +140,15 @@ void removeItemByIndex_LinkedList(linkedList* head, int index){
 
 	}
 
+}
+
+void printInts_LinkedList(linkedList* mayTesteList){
+
+    // listItem* a;
+
+    // printf("\n[\n");
+    // ForEach_LinkedList(mayTesteList,a){
+    //     printInfo( *((int*)a->value) );
+    // }
+    // printf("]\n");
 }
