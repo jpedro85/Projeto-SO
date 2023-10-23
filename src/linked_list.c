@@ -1,145 +1,143 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
-#include "auxiliar_console.h"
+#include "consoleAddons.h"
+#include "linked_list.h"
 
-struct list_item {
-
-	struct list_item* ant;
-	struct list_item* next;
-	void* value ;
-};
-
-struct list_item* create_LinkedList(void* value){
-
-	struct list_item* newlist = (struct list_item *) malloc(sizeof(struct list_item));
-	newlist->value = value;
-	newlist->ant = NULL;
-	newlist->next = NULL;
-
-	return newlist;
+bool isEmpty_LinkedList(linkedList* head){
+	return head->first == NULL;
 }
 
-int length_LinkedList(struct list_item* head ){
-
-	int length = 0;
-	struct list_item* list_item_aux = head;
-
-	while(list_item_aux != NULL) {
-
-		list_item_aux = list_item_aux->next;
-		length++;
-	}
-	return length;
+linkedList createLinkedList(){
+	
+	linkedList* newList = ( linkedList* ) malloc(sizeof(linkedList));
+	newList->first = NULL;
+	newList->length = 0;
+	return *newList;
 }
 
-struct list_item* getItemByIndex_LinkedList(struct list_item* head ,int index){
+void initializeLinkedList(linkedList head){
 
-	int atual_index = 0;
-	struct list_item* list_item_aux = head;
-
-	while(list_item_aux != NULL){
-
-		if(atual_index == index){
-			return list_item_aux;
-		}
-
-		list_item_aux = list_item_aux->next;
-		atual_index++;
-	}
-
-	printf("Index out of range.\n");
-	return NULL;
+	head.length = 0;
+	head.first = NULL;
 }
 
-void* getValueByIndex_LinkedList(struct list_item* head ,int index){
-	return  getItemByIndex_LinkedList(head,index)->value;
-}
+void addValue_LinkedList(linkedList* head, void* value){
 
-void addItem_LinkedList(struct list_item* head, void* value){
+	if( isEmpty_LinkedList(head) ){
 
-	if(head != NULL){
+		head->first = (listItem*)malloc(sizeof(listItem));
+		head->first->next = NULL;
+		head->first->value = value;
+	
+	} else {
 
-		struct list_item* list_item_aux = head;
+		listItem* list_item_aux = head->first;
 
 		while( list_item_aux->next != NULL){
 
 			list_item_aux = list_item_aux->next;
 		}
 
-		list_item_aux->next = (struct list_item*)malloc(sizeof(struct list_item));
+		list_item_aux->next = (listItem*)malloc(sizeof(listItem));
 		list_item_aux->next->value = value;
-		list_item_aux->next->ant = list_item_aux;
+	}
 
-	}else
-		printf("Can not add item to NULL list head.\n");
+	head->length++;
+
 }
 
-void addInt_LinkedList(struct list_item* head, int value){
+void addInt_LinkedList(linkedList* head, int value){
 
 	int * valueToAdd = (int*)malloc(sizeof(int));
 	*valueToAdd = value;
-	addItem_LinkedList(head,valueToAdd);
+	addValue_LinkedList(head,valueToAdd);
 }
 
-void addDouble_LinkedList(struct list_item* head, double value){
+void addDouble_LinkedList(linkedList* head, double value){
 
 	double * valueToAdd = (double*)malloc(sizeof(double));
 	*valueToAdd = value;
-	addItem_LinkedList(head,valueToAdd);
+	addValue_LinkedList(head,valueToAdd);
 }
 
-void addChar_LinkedList(struct list_item* head, char ch){
+void addChar_LinkedList(linkedList* head, char ch){
 
 	char * valueToAdd = (char*)malloc(sizeof(char));
 	*valueToAdd = ch;
-	addItem_LinkedList(head,valueToAdd);
+	addValue_LinkedList(head,valueToAdd);
 }
 
-void removeItemByIndex_LinkedList(struct list_item** head, int index){
 
-	if(*head != NULL){
+void* getValueByIndex_LInkedList(linkedList* head, int index){
 
-		struct list_item* list_item_remove;
+	return getListItemByIndex_LinkedList(head,index)->value;
+}
+
+listItem* getListItemByIndex_LinkedList(linkedList* head, int index){
+
+	if(index >= head->length || index < 0){
+		printError("Index out of range.\n");
+
+	} else {
+
+		int currentIndex = 0;
+		listItem* listItem_aux = head->first;
+
+		while ( listItem_aux->next != NULL){
+			
+			if(currentIndex == index)
+				return listItem_aux;
+
+			listItem_aux = listItem_aux->next;
+			currentIndex++;
+		}
+		
+	}
+
+	return NULL;
+}
+
+void removeItemByIndex_LinkedList(linkedList* head, int index){
+
+	if( isEmpty_LinkedList(head) )
+		printf("Can not remove item from Empty List.\n");
+	
+	else if(index >= head->length || index < 0)
+		printf("Index out of range.\n");
+
+	else {
 
 		if(index == 0){
 
-			list_item_remove = *head;
-			*head = (*head)->next;
-			free(list_item_remove);
+			listItem* listItem_remove = head->first;
+			head->first = head->first->next;
+			head->length--;
+			free(listItem_remove);
 
-		}else{
+		} else {
 
-			list_item_remove = getItemByIndex_LinkedList(*head,index);
+			int currenIndex = 0;
+			listItem* listItem_remove;
+			listItem* listItem_current = head->first;
 
-			if(list_item_remove != NULL){
+			while( listItem_current->next != NULL){
 
-				if(list_item_remove->next == NULL)
-					list_item_remove->ant->next == NULL;
-				else 
-					list_item_remove->ant->next = list_item_remove->next;
-					
-				free(list_item_remove);
+				if(currenIndex == index-1){
+					listItem_remove = listItem_current->next;
+					listItem_current->next = listItem_remove->next;
+					free(listItem_remove);
+					break;
+				}
+
+				listItem_current = listItem_current->next;
+				currenIndex++;
+
 			}
+
 		}
 
-	}else
-		printf("Can not remove item from NULL list head.\n");
-}
-
-void print_LinkedList(struct list_item* head){
-
-	struct list_item * list_item_aux = head;
-
-	printf("\n[\n");
-
-	while (list_item_aux != NULL)
-	{
-		printf(" ");
-		printOptn(list_item_aux->value);
-		list_item_aux = list_item_aux->next;
 	}
 
-	printf("]\n\n");
-	
 }
