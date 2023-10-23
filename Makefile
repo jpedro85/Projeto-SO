@@ -6,7 +6,7 @@ BUILD_DIR = ./build
 CFLAGS = -lpthread -lcjson
 
 # Add common files if needed
-COMMONFILES = $(SRCDIR)/file.c
+COMMONFILES = $(SRCDIR)/acontecimentos.c $(SRCDIR)/file.c
 
 # List of source files for monitor and simulador
 MONITOR_SRC = $(SRCDIR)/monitor/*.c
