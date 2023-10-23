@@ -128,6 +128,7 @@ void removeItemByIndex_LinkedList(linkedList* head, int index){
 					listItem_remove = listItem_current->next;
 					listItem_current->next = listItem_remove->next;
 					free(listItem_remove);
+					head->length--;
 					break;
 				}
 
