@@ -5,42 +5,42 @@
 #include "consoleAddons.h"
 #include "linked_list.h"
 
-bool isEmpty_LinkedList(linkedList* head){
+bool isEmpty_LinkedList(LinkedList* head){
 	return head->first == NULL;
 }
 
-linkedList createLinkedList(){
+LinkedList* createLinkedList(){
 	
-	linkedList* newList = ( linkedList* ) malloc(sizeof(linkedList));
+	LinkedList* newList = ( LinkedList* ) malloc(sizeof(LinkedList));
 	newList->first = NULL;
 	newList->length = 0;
-	return *newList;
+	return newList;
 }
 
-void initializeLinkedList(linkedList head){
+void initialize_LinkedList(LinkedList* head){
 
-	head.length = 0;
-	head.first = NULL;
+	head->length = 0;
+	head->first = NULL;
 }
 
-void addValue_LinkedList(linkedList* head, void* value){
+void addValue_LinkedList(LinkedList* head, void* value){
 
 	if( isEmpty_LinkedList(head) ){
 
-		head->first = (listItem*)malloc(sizeof(listItem));
+		head->first = (ListItem*)malloc(sizeof(ListItem));
 		head->first->next = NULL;
 		head->first->value = value;
 	
 	} else {
 
-		listItem* list_item_aux = head->first;
+		ListItem* list_item_aux = head->first;
 
 		while( list_item_aux->next != NULL){
 
 			list_item_aux = list_item_aux->next;
 		}
 
-		list_item_aux->next = (listItem*)malloc(sizeof(listItem));
+		list_item_aux->next = (ListItem*)malloc(sizeof(ListItem));
 		list_item_aux->next->value = value;
 	}
 
@@ -48,21 +48,21 @@ void addValue_LinkedList(linkedList* head, void* value){
 
 }
 
-void addInt_LinkedList(linkedList* head, int value){
+void addInt_LinkedList(LinkedList* head, int value){
 
 	int * valueToAdd = (int*)malloc(sizeof(int));
 	*valueToAdd = value;
 	addValue_LinkedList(head,valueToAdd);
 }
 
-void addDouble_LinkedList(linkedList* head, double value){
+void addDouble_LinkedList(LinkedList* head, double value){
 
 	double * valueToAdd = (double*)malloc(sizeof(double));
 	*valueToAdd = value;
 	addValue_LinkedList(head,valueToAdd);
 }
 
-void addChar_LinkedList(linkedList* head, char ch){
+void addChar_LinkedList(LinkedList* head, char ch){
 
 	char * valueToAdd = (char*)malloc(sizeof(char));
 	*valueToAdd = ch;
@@ -70,12 +70,12 @@ void addChar_LinkedList(linkedList* head, char ch){
 }
 
 
-void* getValueByIndex_LInkedList(linkedList* head, int index){
+void* getValueByIndex_LInkedList(LinkedList* head, int index){
 
 	return getListItemByIndex_LinkedList(head,index)->value;
 }
 
-listItem* getListItemByIndex_LinkedList(linkedList* head, int index){
+ListItem* getListItemByIndex_LinkedList(LinkedList* head, int index){
 
 	if(index >= head->length || index < 0){
 		printError("Index out of range.\n");
@@ -83,7 +83,7 @@ listItem* getListItemByIndex_LinkedList(linkedList* head, int index){
 	} else {
 
 		int currentIndex = 0;
-		listItem* listItem_aux = head->first;
+		ListItem* listItem_aux = head->first;
 
 		while ( listItem_aux->next != NULL){
 			
@@ -99,7 +99,7 @@ listItem* getListItemByIndex_LinkedList(linkedList* head, int index){
 	return NULL;
 }
 
-void removeItemByIndex_LinkedList(linkedList* head, int index){
+void removeItemByIndex_LinkedList(LinkedList* head, int index){
 
 	if( isEmpty_LinkedList(head) )
 		printError("Can not remove item from Empty List.\n");
@@ -109,9 +109,11 @@ void removeItemByIndex_LinkedList(linkedList* head, int index){
 
 	else {
 
+		ListItem* listItem_remove;
+
 		if(index == 0){
 
-			listItem* listItem_remove = head->first;
+			listItem_remove = head->first;
 			head->first = head->first->next;
 			head->length--;
 			free(listItem_remove);
@@ -119,8 +121,7 @@ void removeItemByIndex_LinkedList(linkedList* head, int index){
 		} else {
 
 			int currenIndex = 0;
-			listItem* listItem_remove;
-			listItem* listItem_current = head->first;
+			ListItem* listItem_current = head->first;
 
 			while( listItem_current->next != NULL){
 
@@ -143,9 +144,9 @@ void removeItemByIndex_LinkedList(linkedList* head, int index){
 
 }
 
-void printInts_LinkedList(linkedList* mayTesteList){
+void printInts_LinkedList(LinkedList* mayTesteList){
 
-    // listItem* a;
+    // ListItem* a;
 
     // printf("\n[\n");
     // ForEach_LinkedList(mayTesteList,a){

@@ -3,6 +3,6 @@
 
 #include "cjson/cJSON.h"
 
-cJSON *loadJSON(char *fileName);
+cJSON *loadAndParseJSONFromFile(char *fileName);
 
 #endif

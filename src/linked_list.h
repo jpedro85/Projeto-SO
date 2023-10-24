@@ -2,43 +2,45 @@
 #define LINKED_LIST_H
 #define ForEach_LinkedList(head,item) for( item = head->first ; item != NULL ; item = item->next )
 #include <stdbool.h>
+typedef struct ListItem {
 
-typedef struct listItem {
-
-	struct listItem* next;
+	struct ListItem* next;
 	void* value ;
 
-}listItem;
+}ListItem;
 
-typedef struct linkedList{
+typedef struct LinkedList{
 	
-	listItem* first;
+	ListItem* first;
 	int length;
 
-}linkedList;
+}LinkedList;
 
-bool isEmpty_LinkedList(linkedList* head);
+//Initiate a linked list;
+void initialize_LinkedList(LinkedList* head);
 
-//Initiate a new linked list;
-linkedList createLinkedList();
+//create dynamic head for linked list
+LinkedList* createLinkedList();
 //linkedList createLinkedList(void* value);
 
 //return the item in head linked list that as the desired index
-listItem* getListItemByIndex_LinkedList(linkedList* head, int index);
+ListItem* getListItemByIndex_LinkedList(LinkedList* head, int index);
 
 //return the value in item in head linked list that as the desired index
-void* getValueByIndex_LInkedList(linkedList* head, int index);
+void* getValueByIndex_LInkedList(LinkedList* head, int index);
 
 //add new value to the linked list head
-void addValue_LinkedList(linkedList* head, void* value);
-void addInt_LinkedList(linkedList* head, int value);
-void addDouble_LinkedList(linkedList* head, double value);
-void addChar_LinkedList(linkedList* head, char ch);
+void addValue_LinkedList(LinkedList* head, void* value);
+void addInt_LinkedList(LinkedList* head, int value);
+void addDouble_LinkedList(LinkedList* head, double value);
+void addChar_LinkedList(LinkedList* head, char ch);
 
 //removes the item with the desired index in the head linked list
-void removeItemByIndex_LinkedList(linkedList* head, int index);
+void removeItemByIndex_LinkedList(LinkedList* head, int index);
 
-//print
-void print_LinkedList(linkedList* head);
+bool isEmpty_LinkedList(LinkedList* head);
+
+//print functions
+void print_LinkedList(LinkedList* head);
 
 #endif
