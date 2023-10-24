@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "consoleAddons.h"
 
 char *readJSON(char *fileName);
 
@@ -85,4 +87,54 @@ char *readJSON(char *fileName)
     }
 
     return buffer;
+}
+
+int loadItemNumber(cJSON* object,char* name,int* number){
+
+    cJSON* json_item = cJSON_GetObjectItem(object,name);
+    if(json_item){
+
+        int value = cJSON_GetNumberValue(json_item);
+        if(value < 0){
+            char* strError = "Invalid value type of ";
+            strcat(strError,name);
+            printError(strError);
+            
+        } else {
+            *number = value;
+            return 0;
+        }
+
+    } else {
+        char* strError = "Could not load value of ";
+        strcat(strError,name);
+        printError(strError);
+    }
+
+    return 1;
+}
+
+int loadItemString(cJSON* object,char* name,char** string){
+
+    cJSON* json_item = cJSON_GetObjectItem(object,name);
+    if(json_item){
+
+        char* value = cJSON_GetStringValue(json_item);
+        if(value == "" || value == NULL){
+            char* strError = "Invalid value type of ";
+            strcat(strError,name);
+            printError(strError);
+            
+        } else {
+            *string = value;
+            return 0;
+        }
+
+    } else {
+        char* strError = "Could not load value of ";
+        strcat(strError,name);
+        printError(strError);
+    }
+
+    return 1;
 }

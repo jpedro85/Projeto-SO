@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 #include "park.h"
 #include "simulationConf.h"
@@ -9,37 +8,30 @@
 #include "../consoleAddons.h"
 
 
-int loadItemNumber(cJSON* object,char* name,char* error){
-
-    cJSON* json_item = cJSON_GetObjectItemCaseSensitive(object,name);
-    if(!json_item)
-        return cJSON_GetNumberValue(json_item);
-    else
-        printError(error);
-
-    return 0;
-}
-
 int loadSimulationConfig(cJSON* cJsonObject ,SimulationConf* simulationConf){
 
-   cJSON* simulation =  cJSON_GetObjectItemCaseSensitive(cJsonObject,"simulation");
+   cJSON* simulation =  cJSON_GetObjectItem(cJsonObject,"simulation");
+   int errorCount = 0;
 
-//    simulation: {
-//         averageClientArriveTime_ms : 10,
-//         toleranceClientArriveTime_ms : 1,
-//         dayLength_s: 12
-//         userMaxAge: 80,
-//         userMinAge: 0,
-//         userMinWaitingTime_ms: 10
-//     },
+    if(simulation){
 
+        char* aa;
 
-   if(simulation != NULL){
-
-        simulationConf->averageClientArriveTime_ms = loadItemNumber(simulation,"averageClientArriveTime_ms","Could not load averageClientArriveTime_ms.");
+        errorCount += loadItemNumber(simulation,"averageClientArriveTime_ms",&(simulationConf->averageClientArriveTime_ms));
+        errorCount += loadItemNumber(simulation,"toleranceClientArriveTime_ms",&(simulationConf->toleranceClientArriveTime_ms));
+        errorCount += loadItemNumber(simulation,"dayLength_s",&(simulationConf->dayLength_s));
+        errorCount += loadItemNumber(simulation,"userMaxAge",&(simulationConf->userMaxAge));
+        errorCount += loadItemNumber(simulation,"userMinAge",&(simulationConf->userMinAge));
+        errorCount += loadItemNumber(simulation,"userMinWaitingTime_ms",&(simulationConf->userMinWaitingTime_ms));
 
         
-   }
+        if(errorCount > 0){
+            char str[55];
+            sprintf(str, "Simulation configuration Loaded with %d errors!", errorCount);
+            printWarning(str);
+        }
+
+    }
     
 }
 

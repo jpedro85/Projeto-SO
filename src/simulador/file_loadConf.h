@@ -3,6 +3,7 @@
 
 #include "park.h"
 #include "simulationConf.h"
+
 void loadConfig(Park* park,SimulationConf* simulationConf, char* configFile);
 
 #endif

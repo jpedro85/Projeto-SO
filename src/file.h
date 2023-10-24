@@ -5,4 +5,7 @@
 
 cJSON *loadAndParseJSONFromFile(char *fileName);
 
+int loadItemNumber(cJSON* object,char* name,int* number);
+int loadItemString(cJSON* object,char* name,char** string);
+
 #endif
