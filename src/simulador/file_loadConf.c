@@ -59,9 +59,7 @@ void loadConfig(Park* park,SimulationConf* simulationConf, char* configFile){
 
     if(!fileOpen_Object){
 
-        char* str;
-        sprintf (str,"The configuration %s could not be loaded.","change");
-        printError(str);
+        printError("The configuration could not be loaded.");
         printWarning("Using default simulator configuration.");
 
         fileOpen_Object = loadAndParseJSONFromFile("simuladorDefault.conf");
