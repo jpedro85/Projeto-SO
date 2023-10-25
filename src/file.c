@@ -102,6 +102,7 @@ int loadItemNumber(cJSON* object,char* name,int* number){
             
         } else {
             *number = value;
+            printf("\033[1;37mLoaded %d for %s\033[1;0m\n",value,name);
             return 0;
         }
 
@@ -127,6 +128,7 @@ int loadItemString(cJSON* object,char* name,char** string){
             
         } else {
             *string = value;
+            printf("\033[1;37mLoaded %s for %s\033[1;0m\n",value,name);
             return 0;
         }
 
