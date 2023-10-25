@@ -10,7 +10,7 @@ typedef struct Attraction{
     char* name ;
     int minAge, maxAge ;
 
-    LinkedList schedule;
+    LinkedList scheduleList;
 
     int duration_ms;
     int rideCapacity;
