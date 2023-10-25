@@ -40,6 +40,9 @@ void removeItemByIndex_LinkedList(LinkedList* head, int index);
 
 bool isEmpty_LinkedList(LinkedList* head);
 
+//clear
+void clear_linkedList(LinkedList* head);
+
 //print functions
 void print_LinkedList(LinkedList* head);
 

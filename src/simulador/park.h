@@ -10,7 +10,7 @@ typedef struct Park{
     char* name;
     int parkCapacity;
 
-    LinkedList schedule;
+    LinkedList scheduleList;
     LinkedList attractions;
 
 }Park;

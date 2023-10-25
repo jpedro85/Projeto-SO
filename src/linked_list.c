@@ -144,6 +144,28 @@ void removeItemByIndex_LinkedList(LinkedList* head, int index){
 
 }
 
+void clear_linkedList(LinkedList* head){
+
+	if( !isEmpty_LinkedList(head) ){
+
+		ListItem* listItemToRemove;
+		ListItem* listItem_aux = head->first;
+
+		while(listItem_aux != NULL){
+
+			listItemToRemove = listItem_aux;
+			listItem_aux = listItem_aux->next;
+			free(listItemToRemove);
+		}
+
+		head->length = 0;
+		head->first = NULL;
+
+	}else	
+		printError("Can not clear items from empty linked list.");
+
+}
+
 void printInts_LinkedList(LinkedList* mayTesteList){
 
     // ListItem* a;
