@@ -9,61 +9,6 @@
 #include "../file.h"
 #include "../consoleAddons.h"
 
-int loadAttraction(cJSON* attraction_Object, Attraction* Attraction){
-
-    if(attraction_Object){
-
-        int errorCount = 0;
-
-        errorCount += loadItemString(attraction_Object,"name",&(Attraction->name));
-        errorCount += loadItemNumber(attraction_Object,"minAge",&(Attraction->minAge));
-        errorCount += loadItemNumber(attraction_Object,"maxAge",&(Attraction->maxAge));
-        errorCount += loadItemNumber(attraction_Object,"duration_ms",&(Attraction->duration_ms));
-        errorCount += loadItemNumber(attraction_Object,"rideCapacity",&(Attraction->rideCapacity));
-        errorCount += loadItemLinkedListSchedule(attraction_Object,"scheduleList",&(Attraction->scheduleList));
-
-        return errorCount;
-
-    } else
-        return 1;
-}
-
-int loadItemLinkedListAttraction( cJSON* cJsonObject, char* objectName, LinkedList* linkedList ){
-
-    printf("\033[1;37mLoading array %s.\033[1;0m\n",objectName); 
-    cJSON* arrayAttraction=  cJSON_GetObjectItem(cJsonObject,objectName);
-
-    if(arrayAttraction && cJSON_IsArray(arrayAttraction)){
-
-        cJSON* item;
-        Attraction* attraction;
-        int errorCount = 0;
-
-        cJSON_ArrayForEach(item,arrayAttraction){
-
-            attraction = (Attraction*)malloc(sizeof(Attraction));
-
-            errorCount += loadAttraction(item,attraction);
-
-            if(errorCount > 0){
-                printError("Could not load array");
-                clear_linkedList(linkedList);
-                return 1;
-            }else{
-                addValue_LinkedList(linkedList,attraction);
-            }
-
-        }
-
-        printInfo("Array Loaded");
-        return 0;
-
-    } else
-        printf("\033[1;31mCan not load %s.\033[1;0m\n",objectName); 
-
-    return 1;
-}
-
 int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList* linkedList ){
 
     printf("\033[1;37mLoading array %s.\033[1;0m\n",objectName); 
@@ -88,7 +33,9 @@ int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList
                 clear_linkedList(linkedList);
                 return 1;
             }else{
+                printWarning("Eu0");
                 addValue_LinkedList(linkedList,schedule);
+                printWarning("Eu2");
             }
 
         }
@@ -102,6 +49,72 @@ int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList
     return 1;
 }   
 
+int loadAttraction(cJSON* attraction_Object, Attraction* attraction){
+
+    if(attraction_Object){
+
+        int errorCount = 0;
+
+        errorCount += loadItemString(attraction_Object,"name",&(attraction->name));
+        errorCount += loadItemNumber(attraction_Object,"minAge",&(attraction->minAge));
+        errorCount += loadItemNumber(attraction_Object,"maxAge",&(attraction->maxAge));
+        errorCount += loadItemNumber(attraction_Object,"duration_ms",&(attraction->duration_ms));
+        errorCount += loadItemNumber(attraction_Object,"rideCapacity",&(attraction->rideCapacity));
+
+        printError(attraction->name);
+
+        initialize_LinkedList(&(attraction->scheduleList));
+        errorCount += loadItemLinkedListSchedule(attraction_Object,"scheduleList",&(attraction->scheduleList));
+        initialize_LinkedList(&(attraction->currentAttendance));
+        initialize_LinkedList(&(attraction->waitingLine));
+
+        return errorCount;
+
+    } else
+        return 1;
+}
+
+int loadItemLinkedListAttraction( cJSON* cJsonObject, char* objectName, LinkedList* linkedList ){
+
+    printf("\033[1;37mLoading array %s.\033[1;0m\n",objectName); 
+    cJSON* arrayAttraction=  cJSON_GetObjectItem(cJsonObject,objectName);
+
+    if(arrayAttraction && cJSON_IsArray(arrayAttraction)){
+
+        cJSON* item;
+        Attraction* attraction;
+        int errorCount = 0;
+
+        cJSON_ArrayForEach(item,arrayAttraction){
+
+            attraction = (Attraction*)malloc(sizeof(Attraction));
+
+            printWarning("Eu");
+
+            errorCount += loadAttraction(item,attraction);
+
+            printf("%d",linkedList->length);
+
+            if(errorCount > 0){
+                printError("Could not load array");
+                clear_linkedList(linkedList);
+                return 1;
+            }else{
+                printWarning("Tu1");
+                addValue_LinkedList(linkedList,attraction);
+                printWarning("Tu2");
+            }
+
+        }
+
+        printInfo("Array Loaded");
+        return 0;
+
+    } else
+        printf("\033[1;31mCan not load %s.\033[1;0m\n",objectName); 
+
+    return 1;
+}
 
 int loadSimulationConfig(cJSON* cJsonObject ,SimulationConf* simulationConf){
 
@@ -142,7 +155,9 @@ int loadPark(cJSON* cJsonObject, Park* park){
 
         errorCount += loadItemString(cJson_park,"name",&(park->name));
         errorCount += loadItemNumber(cJson_park,"parkCapacity",&(park->parkCapacity));
+        initialize_LinkedList(&(park->scheduleList));
         errorCount += loadItemLinkedListSchedule(cJson_park,"scheduleList",&(park->scheduleList));
+        initialize_LinkedList(&(park->attractions));
         errorCount += loadItemLinkedListAttraction(cJson_park,"parkAttractions",&(park->attractions));
 
         if(errorCount > 0){

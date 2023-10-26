@@ -42,6 +42,7 @@ void addValue_LinkedList(LinkedList* head, void* value){
 
 		list_item_aux->next = (ListItem*)malloc(sizeof(ListItem));
 		list_item_aux->next->value = value;
+		list_item_aux->next->next = NULL;
 	}
 
 	head->length++;
