@@ -11,7 +11,7 @@
 
 int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList* linkedList ){
 
-    printf("\033[1;37mLoading array %s.\033[1;0m\n",objectName); 
+    printf("\033[1;33mLoading array %s.\033[1;0m\n",objectName); 
     cJSON* arraySchedule =  cJSON_GetObjectItem(cJsonObject,objectName);
 
     if(arraySchedule && cJSON_IsArray(arraySchedule)){
@@ -30,9 +30,12 @@ int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList
 
             if(errorCount > 0){
                 printError("Could not load array");
-                clear_linkedList(linkedList);
+                
+                if(!isEmpty_LinkedList(linkedList))
+                    clear_linkedList(linkedList);
+
                 return 1;
-            }else{
+            }else {
                 addValue_LinkedList(linkedList,schedule);
             }
 
@@ -47,6 +50,18 @@ int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList
     return 1;
 }   
 
+/**
+ * The function loads attraction data from a JSON object into an Attraction struct.
+ * 
+ * @param attraction_Object attraction_Object is a pointer to a cJSON object that contains the data for
+ * an attraction. This object should have the following attributes:
+ * @param attraction Attraction is a struct that represents an attraction in a theme park. It contains
+ * various attributes such as name, minimum age, maximum age, duration, ride capacity, schedule list,
+ * current attendance, and waiting line. The loadAttraction function takes a cJSON object
+ * (attraction_Object) and loads the
+ * 
+ * @return the number of errors encountered while loading the attraction data.
+ */
 int loadAttraction(cJSON* attraction_Object, Attraction* attraction){
 
     if(attraction_Object){
@@ -63,6 +78,7 @@ int loadAttraction(cJSON* attraction_Object, Attraction* attraction){
         errorCount += loadItemLinkedListSchedule(attraction_Object,"scheduleList",&(attraction->scheduleList));
         initialize_LinkedList(&(attraction->currentAttendance));
         initialize_LinkedList(&(attraction->waitingLine));
+
 
         return errorCount;
 
@@ -90,8 +106,10 @@ int loadItemLinkedListAttraction( cJSON* cJsonObject, char* objectName, LinkedLi
 
             if(errorCount > 0){
                 printError("Could not load array");
-                clear_linkedList(linkedList);
-                printf("%d",linkedList->length);
+
+                if(!isEmpty_LinkedList(linkedList))
+                    clear_linkedList(linkedList);
+
                 return 1;
             }else{
                 addValue_LinkedList(linkedList,attraction);
