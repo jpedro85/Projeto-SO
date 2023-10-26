@@ -1,7 +1,13 @@
-#include "registo.h"
-#include "../events.h"
+#include <unistd.h>
 
-int main() {
+#include "registo.h"
+#include "../common/events.h"
+#include "../common/consoleAddons.h"
+
+int main(int argc , char *argv[] ){
+
+    printInfo("Monitor Started !");
+    
     FILE* file = fopen("registo.txt", "a");
     if (file == NULL) {
         fprintf(stderr, "Failed to open the file for writing.\n");
@@ -17,5 +23,6 @@ int main() {
 
     fclose(file); // Close the file
 
-    return 0; // Return 0 to indicate success
+    printInfo("Monitor exiting");
+    return 0;
 }
