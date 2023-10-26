@@ -7,6 +7,7 @@ void printOption(char* option);
 void printInfo(char* info);
 void printError(char* error);
 void printWarning(char* warning);
+void printSuccess(char* success);
 void printCursor();
 void resetColor();
 

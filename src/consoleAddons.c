@@ -24,6 +24,10 @@ void printWarning(char* warning){
     printf("\033[1;33m%s\033[1;0m\n",warning); 
 }
 
+void printSuccess(char* success){
+    printf("\033[1;32m%s\033[1;0m\n",success); 
+}
+
 void resetColor(){
     printf("\033[1;0m");
 }

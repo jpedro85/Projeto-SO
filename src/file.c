@@ -107,9 +107,7 @@ int loadItemNumber(cJSON* object,char* name,int* number){
         }
 
     } else {
-        char* strError = "Could not load value of ";
-        strcat(strError,name);
-        printError(strError);
+        printf("\033[1;31mCould not load value of %s \033[1;0m",name);
     }
 
     return 1;
@@ -133,9 +131,7 @@ int loadItemString(cJSON* object,char* name,char** string){
         }
 
     } else {
-        char* strError = "Could not load value of ";
-        strcat(strError,name);
-        printError(strError);
+        printf("\033[1;31mCould not load value of %s \033[1;0m",name);
     }
 
     return 1;

@@ -4,8 +4,8 @@
 #include <stdbool.h>
 
 typedef struct {
-    int begin;
-    int end;
+    int startTime_ms;
+    int endTime_ms;
     bool done;
 }Schedule;
 

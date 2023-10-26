@@ -24,8 +24,8 @@ int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList
 
             schedule = (Schedule*)malloc(sizeof(Schedule));
 
-            errorCount += loadItemNumber(item,"begin",&(schedule->begin));
-            errorCount += loadItemNumber(item,"end",&(schedule->begin));
+            errorCount += loadItemNumber(item,"startTime_ms",&(schedule->startTime_ms));
+            errorCount += loadItemNumber(item,"endTime_ms",&(schedule->endTime_ms));
             schedule->done = false;
 
             if(errorCount > 0){
@@ -33,14 +33,12 @@ int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList
                 clear_linkedList(linkedList);
                 return 1;
             }else{
-                printWarning("Eu0");
                 addValue_LinkedList(linkedList,schedule);
-                printWarning("Eu2");
             }
 
         }
 
-        printInfo("Array Loaded");
+        printWarning("Array Loaded");
         return 0;
 
     } else
@@ -61,8 +59,6 @@ int loadAttraction(cJSON* attraction_Object, Attraction* attraction){
         errorCount += loadItemNumber(attraction_Object,"duration_ms",&(attraction->duration_ms));
         errorCount += loadItemNumber(attraction_Object,"rideCapacity",&(attraction->rideCapacity));
 
-        printError(attraction->name);
-
         initialize_LinkedList(&(attraction->scheduleList));
         errorCount += loadItemLinkedListSchedule(attraction_Object,"scheduleList",&(attraction->scheduleList));
         initialize_LinkedList(&(attraction->currentAttendance));
@@ -76,7 +72,7 @@ int loadAttraction(cJSON* attraction_Object, Attraction* attraction){
 
 int loadItemLinkedListAttraction( cJSON* cJsonObject, char* objectName, LinkedList* linkedList ){
 
-    printf("\033[1;37mLoading array %s.\033[1;0m\n",objectName); 
+    printf("\033[1;33mLoading array %s.\033[1;0m\n",objectName); 
     cJSON* arrayAttraction=  cJSON_GetObjectItem(cJsonObject,objectName);
 
     if(arrayAttraction && cJSON_IsArray(arrayAttraction)){
@@ -87,27 +83,24 @@ int loadItemLinkedListAttraction( cJSON* cJsonObject, char* objectName, LinkedLi
 
         cJSON_ArrayForEach(item,arrayAttraction){
 
+            printWarning("Loading Attraction.");
+
             attraction = (Attraction*)malloc(sizeof(Attraction));
-
-            printWarning("Eu");
-
             errorCount += loadAttraction(item,attraction);
-
-            printf("%d",linkedList->length);
 
             if(errorCount > 0){
                 printError("Could not load array");
                 clear_linkedList(linkedList);
+                printf("%d",linkedList->length);
                 return 1;
             }else{
-                printWarning("Tu1");
                 addValue_LinkedList(linkedList,attraction);
-                printWarning("Tu2");
+                printSuccess("Attraction Loaded correctly.");
             }
 
         }
 
-        printInfo("Array Loaded");
+        printWarning("Array Loaded.");
         return 0;
 
     } else
@@ -135,7 +128,7 @@ int loadSimulationConfig(cJSON* cJsonObject ,SimulationConf* simulationConf){
         if(errorCount > 0){
             printf("\033[1;33mSimulation object Loaded with %d errors!\033[1;0m\n",errorCount);
         }else{
-            printInfo("Loaded simulation object successfully.");
+            printSuccess("Loaded simulation object successfully.");
             return 0;
         }
 
@@ -147,7 +140,7 @@ int loadSimulationConfig(cJSON* cJsonObject ,SimulationConf* simulationConf){
 
 int loadPark(cJSON* cJsonObject, Park* park){
 
-    printInfo("Loading park object.");
+    printWarning("Loading park object.");
     cJSON* cJson_park =  cJSON_GetObjectItem(cJsonObject,"park");
     int errorCount = 0;
 
@@ -163,7 +156,7 @@ int loadPark(cJSON* cJsonObject, Park* park){
         if(errorCount > 0){
             printf("\033[1;33mPark object Loaded with %d errors!\033[1;0m\n",errorCount);
         }else{
-            printInfo("Loaded Park object successfully.");
+            printSuccess("Loaded Park object successfully.");
             return 0;
         }
 
@@ -186,7 +179,8 @@ void loadConfig(Park* park,SimulationConf* simulationConf, char* configFile){
         fileOpen_Object = loadAndParseJSONFromFile("simuladorDefault.conf");
 
         if(!fileOpen_Object){
-            printError("The default configuration could not be loaded. The program will exit.");
+            printError("The default configuration could not be loaded.");
+            printWarning("The program will exit!");
             exit(1);
         }
 
@@ -198,12 +192,11 @@ void loadConfig(Park* park,SimulationConf* simulationConf, char* configFile){
     errorCount += loadPark(fileOpen_Object,park);
 
     if(errorCount > 0){
-
         printError("Could load configuration correctly!");
         printWarning("The program will exit!");
         exit(1);
     } else
-        printInfo("Configuration Loaded");
+        printSuccess("Configuration Loaded.");
 }
 
 
