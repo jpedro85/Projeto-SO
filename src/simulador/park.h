@@ -3,9 +3,9 @@
 
 #include <stdbool.h>
 
-#include "../linked_list.h"
+#include "../common/linked_list.h"
 
-typedef struct Park{
+typedef struct {
 
     char* name;
     int parkCapacity;

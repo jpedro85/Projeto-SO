@@ -6,8 +6,8 @@
 #include "simulationConf.h"
 #include "attraction.h"
 #include "schedule.h"
-#include "../file.h"
-#include "../consoleAddons.h"
+#include "../common/file.h"
+#include "../common/consoleAddons.h"
 
 int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList* linkedList ){
 
@@ -86,6 +86,16 @@ int loadAttraction(cJSON* attraction_Object, Attraction* attraction){
         return 1;
 }
 
+/**
+ * The function loads an array of attractions from a JSON object into a linked list.
+ * 
+ * @param cJsonObject A pointer to a cJSON object that contains the array of attractions.
+ * @param objectName The name of the object that contains the array of attractions.
+ * @param linkedList The `linkedList` parameter is a pointer to a `LinkedList` structure. This
+ * structure is used to store a linked list of `Attraction` objects.
+ * 
+ * @return an integer value.
+ */
 int loadItemLinkedListAttraction( cJSON* cJsonObject, char* objectName, LinkedList* linkedList ){
 
     printf("\033[1;33mLoading array %s.\033[1;0m\n",objectName); 

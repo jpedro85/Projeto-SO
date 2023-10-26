@@ -3,9 +3,9 @@
 //#include <unistd.h>
 
 #include "file_loadConf.h"
-#include "../linked_list.h"
-#include "../consoleAddons.h"
-#include "../cjson/cJSON.h"
+#include "../common/linked_list.h"
+#include "../common/consoleAddons.h"
+#include "../common/cjson/cJSON.h"
 
 int main( int argc , char *argv[] ){
 

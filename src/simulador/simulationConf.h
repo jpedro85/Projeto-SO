@@ -1,7 +1,7 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
-typedef struct SimulationConf
+typedef struct
 {
     int averageClientArriveTime_ms;
     int toleranceClientArriveTime_ms;
