@@ -1,4 +1,4 @@
-#include <unistd.h>
+#include <stdio.h>
 
 #include "registo.h"
 #include "../common/events.h"
@@ -6,9 +6,9 @@
 
 int main(int argc , char *argv[] ){
 
-    printInfo("Monitor Started !");
-    
-    FILE* file = fopen("registo.txt", "a");
+    printWarning("Monitor Started !");
+
+    FILE* file = fopen("registo.txt", "w");
     if (file == NULL) {
         fprintf(stderr, "Failed to open the file for writing.\n");
         return 1; // Return an error code to indicate failure
@@ -23,6 +23,6 @@ int main(int argc , char *argv[] ){
 
     fclose(file); // Close the file
 
-    printInfo("Monitor exiting");
+    printWarning("Monitor terminated successfully");
     return 0;
 }
