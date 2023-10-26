@@ -197,7 +197,7 @@ int loadPark(cJSON* cJsonObject, Park* park){
 void loadConfig(Park* park,SimulationConf* simulationConf, char* configFile){
 
     
-    cJSON* fileOpen_Object = loadAndParseJSONFromFile("simuladorDefault.conf");
+    cJSON* fileOpen_Object = loadAndParseJSONFromFile(configFile);
 
     if(!fileOpen_Object){
 

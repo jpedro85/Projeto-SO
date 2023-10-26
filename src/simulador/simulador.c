@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <unistd.h>
+#include <unistd.h>
 
 #include "file_loadConf.h"
 #include "../common/linked_list.h"
@@ -9,35 +9,31 @@
 
 int main( int argc , char *argv[] ){
 
-    // int argUsed = 1;
+    int argUsed = 1;
     
-    // if ( fork() == 0){
+    if ( fork() == 0){
 
-    //     int argToPassCount = argc-argUsed + 2;
+        char* argvToPass[] = {"./build/monitor",NULL};
+        int a = execvp("./build/monitor",argvToPass);
 
-    //     char** argvToPass = (char**)malloc( argToPassCount * sizeof(char*));
+         printf("\033[1;36masdasd:%d\033[1;0m\n",a);
+        
+    } else {
 
-    //     argvToPass[0] = "../monitor/monitor";
+        char* simulationConfFile = "simuladorDefault.conf";;
+        if(argc > 1)
+            simulationConfFile = argv[1];
 
-    //     int j = argUsed;
-    //     for(int i = 0; i < argToPassCount-1 && j<argc ; i++){
-    //         argvToPass[i] = argv[j];
-    //         j++;
-    //     }
+        Park park;
+        SimulationConf simulationConf;
 
-    //     argvToPass[ argToPassCount - 1 ] = NULL;
+        loadConfig(&park,&simulationConf,simulationConfFile);
 
-    //     exec(argvToPass[0],argvToPass);
-    // }
+
+        printSuccess("Simulador Terminated Successfully");
+
+    }
 
     
-    Park park;
-    SimulationConf simulationConf;
-    char* simulationConfFile = "simuladorDefault.conf";
-
-    loadConfig(&park,&simulationConf,simulationConfFile);
-
-
-
     return 0;
 }
