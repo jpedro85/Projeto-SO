@@ -1,3 +1,3 @@
 #include <stdio.h>
 
-void escreveRegisto(FILE* file, int user, int acontecimento, int tempo);
+void writeRecord(FILE* file, int entity, int event, int time);
