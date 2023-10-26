@@ -1,6 +1,6 @@
 #include <unistd.h>
 
-#include "../consoleAddons.h"
+#include "../common/consoleAddons.h"
 
 
 int main(int argc , char *argv[] ){
