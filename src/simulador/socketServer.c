@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 #include "../common/consoleAddons.h"
 #include "../common/sokectUtils/socketUtil.h"
