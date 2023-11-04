@@ -5,6 +5,6 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#define UNIXSTREAM_PATH "/tmp/socked_Sim_212_208_207
+#define UNIXSTREAM_PATH "/tmp/socked_Sim_212_208_207"
 
 #endif
