@@ -1,7 +1,7 @@
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
-#include <stdlib.h>
+#include <unistd.h>
 
 #include "../common/consoleAddons.h"
 #include "../common/sokectUtils/socketUtil.h"
@@ -25,31 +25,31 @@ void acceptClient(){
     int newSocketClient;
     clientLength = sizeof(clientAddress);
 
-    newSocketClient = accept(sockfd, (struct sockaddr *) &clientAddress, &clientLength)
+    newSocketClient = accept(serverSocket, (struct sockaddr *) &clientAddress, &clientLength);
     if (newSocketClient < 0){
         
         if(errno == EAGAIN || errno == EWOULDBLOCK )//try again;
             return;
 
         printError(strerror(errno));
-        printFatalError("server:Can not accept Client.")
+        printFatalError("server:Can not accept Client.");
 
     } else {
 
         // to ensure that a msg is not send while a new client is added to the list or a client is not added will a msg is being sended.
-        if( pthread_mutex_look(&clientsList_mutex) == 0){
+        if( pthread_mutex_lock(&clientsList_mutex) == 0){
             
-            addInt_LinkedList(clientsList,newSocketClient);
+            addInt_LinkedList(&clientsList,newSocketClient);
 
             if (pthread_mutex_unlock(&clientsList_mutex) != 0){
 
-                printFatalError("Can not unlock clientsList_mutex.")
+                printFatalError("Can not unlock clientsList_mutex.");
             }
 
             printWarning("server: new client connected.");
             
         }else
-            printFatalError("Can not lock clientsList_mutex.")
+            printFatalError("Can not lock clientsList_mutex.");
             
     }
 }
@@ -57,9 +57,9 @@ void acceptClient(){
 /**
  * The function waits for clients to connect and accepts them.
  */
-void waitForClients(){
+void* waitForClients(){
 
-    printWarning("Waiting for Clients.")
+    printWarning("Waiting for Clients.");
     while (1){
         acceptClient();
     }
@@ -92,7 +92,7 @@ int startServer(){
     }
 
     /* Binding the name to the socket*/
-	if ( bind(serverSocket, /*(struct sockaddr *)*/ &serverAddress , serverLength) < 0 ){
+	if ( bind(serverSocket, (struct sockaddr *)&serverAddress, serverLength) < 0 ){
         printError(strerror(errno));
 		printFatalError("server: can't bind stream socket");
     }else
@@ -123,8 +123,8 @@ void stopServer(){
     close(serverSocket);
 
     ListItem* socket;
-    ForEach_LinkedList(clientsList,socket){
-        close((int)socket->value);
+    ForEach_LinkedList((&clientsList),socket){
+        close( *((int*)socket->value) );
     }
 
 }

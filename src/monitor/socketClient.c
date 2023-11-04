@@ -1,7 +1,7 @@
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
-#include <stdlib.h>
+#include <unistd.h>
 
 #include "../common/consoleAddons.h"
 #include "../common/sokectUtils/socketUtil.h"
@@ -30,7 +30,7 @@ void creatConnection(){
     serverLength = sizeof(serverAddress);
 
     /* Connect to server */
-    if ( connect(serverSocket, /* (struct sockaddr *) */&serverAddress, serverLength) < 0)
+    if ( connect(serverSocket, (struct sockaddr *)&serverAddress, serverLength) < 0)
 		printFatalError("client: can not connect to server.");
 
 }

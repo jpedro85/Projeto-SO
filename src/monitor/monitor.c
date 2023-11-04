@@ -3,6 +3,7 @@
 #include "registo.h"
 #include "../common/events.h"
 #include "../common/consoleAddons.h"
+#include "socketClient.h"
 
 int main(int argc , char *argv[] ){
 
@@ -21,8 +22,11 @@ int main(int argc , char *argv[] ){
     writeRecord(file, 1, UserLeft, 5);
     writeRecord(file, 0, SimulationStart, 6);
 
+    creatConnection();
+
     fclose(file); // Close the file
 
+    closeConnection();
     printWarning("Monitor terminated successfully");
     return 0;
 }
