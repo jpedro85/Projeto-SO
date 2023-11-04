@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 void printResult(char* result){
     printf("\033[1;33m%s\033[1;0m\n",result);
@@ -18,6 +19,12 @@ void printCursor(){
 
 void printError(char* error){
     printf("\033[1;31m%s\033[1;0m\n",error); 
+}
+
+void printFatalError(char* error){
+    printf("\033[1;31m%s\033[1;0m\n",error); 
+    printWarning("The program will exit!");
+    exit(1);
 }
 
 void printWarning(char* warning){

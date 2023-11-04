@@ -6,6 +6,10 @@
 #include "../common/linked_list.h"
 #include "../common/consoleAddons.h"
 #include "../common/cjson/cJSON.h"
+#include "socketServer.h"
+
+Park park;
+SimulationConf simulationConf;
 
 int main( int argc , char *argv[] ){
 
@@ -16,7 +20,7 @@ int main( int argc , char *argv[] ){
         char* argvToPass[] = {"./build/monitor",NULL};
         int a = execvp("./build/monitor",argvToPass);
 
-         printf("\033[1;36masdasd:%d\033[1;0m\n",a);
+        printf("\033[1;36masdasd:%d\033[1;0m\n",a);
         
     } else {
 
@@ -24,12 +28,13 @@ int main( int argc , char *argv[] ){
         if(argc > 1)
             simulationConfFile = argv[1];
 
-        Park park;
-        SimulationConf simulationConf;
 
         loadConfig(&park,&simulationConf,simulationConfFile);
 
+        startServer();
 
+
+        
         printSuccess("Simulador Terminated Successfully");
 
     }

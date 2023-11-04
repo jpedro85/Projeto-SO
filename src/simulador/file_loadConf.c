@@ -226,15 +226,3 @@ void loadConfig(Park* park,SimulationConf* simulationConf, char* configFile){
     } else
         printSuccess("Configuration Loaded.");
 }
-
-
-
-
-
-
-
-
-
-
-
-
