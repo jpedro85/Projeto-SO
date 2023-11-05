@@ -16,7 +16,7 @@ void stopServer();
 
 void* removeSendedMsgs();
 
-void* sendMsgToClient( int client );
+void* sendMsgToClient( void* client );
 
 void addMsgToQueue(char* msg);
 

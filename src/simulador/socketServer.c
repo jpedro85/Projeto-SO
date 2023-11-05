@@ -46,16 +46,14 @@ void* removeSendedMsgs(){
 
             if( ((Msg*)(item->value))->numberOfSends == clientsList.length ){
                 free( ((Msg*)(item->value))->msg ); // cleaning string 
+                printError("Aqui1");
                 removeItemByIndex_LinkedList(&sendMsgQueue,index); // does the rest;
             }
 
             index++;
         }
 
-        if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex.");
-        
-        message = getValueByIndex_LInkedList(&sendMsgQueue,0);
-
+        if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex."); 
         if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
     }
 
@@ -70,6 +68,7 @@ void* removeSendedMsgs(){
  */
 void* sendMsgToClient( void* client ){
 
+    printError("aqui3");
     int socketFd = ((Client*)getValueByIndex_LInkedList(&clientsList, *((int*)client) ))->socket ;
     int error;
     Msg* message;
@@ -168,7 +167,7 @@ void acceptClient(){
         if( pthread_mutex_lock(&clientsList_mutex) < 0)
             printFatalError("Can not lock clientsList_mutex.");
 
-        addInt_LinkedList(&clientsList,client);
+        addValue_LinkedList(&clientsList,client);
 
         if (pthread_mutex_unlock(&clientsList_mutex) < 0)
             printFatalError("Can not unlock clientsList_mutex.");
