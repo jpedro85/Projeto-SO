@@ -70,6 +70,8 @@ void* removeSendedMsgs(){
  */
 void* sendMsgToClient( void* client ){
 
+    waitFor_waitForClients(*((int*)client));
+    
     int socketFd = ((Client*)getValueByIndex_LInkedList(&clientsList, *((int*)client) ))->socket ;
     int error;
     Msg* message;
@@ -227,6 +229,34 @@ void waitFirstConnection(){
 
         if(length > 0)
             return;   
+
+    }
+}
+
+/**
+ * The function waits until a specified number of clients have connected before returning.
+ * 
+ * @param connectionNumber The connectionNumber parameter represents the number of clients that need to
+ * be connected before the function can return.
+ * 
+ * @return nothing (void).
+ */
+void waitFor_waitForClients(int connectionIndex){
+
+    int numberOfClients;
+    while(1){
+
+        if (pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
+        numberOfClients = clientsList.length;
+        if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
+
+        //If the number of connection (clientsList.length) is less then the index of a 
+        // connection means there is a connection to be added to de list in the other thread (waitForClients).
+        // this one executed firs then waitForClients
+        if(numberOfClients < connectionIndex )
+            continue;
+        else
+            return;
 
     }
 }

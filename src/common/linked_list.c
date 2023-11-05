@@ -79,7 +79,7 @@ void* getValueByIndex_LInkedList(LinkedList* head, int index){
 ListItem* getListItemByIndex_LinkedList(LinkedList* head, int index){
 
 	if(index >= head->length || index < 0){
-		printError("Index out of range.\n");
+		printError("Can not get item index out of range.\n");
 
 	} else {
 
@@ -106,7 +106,7 @@ void removeItemByIndex_LinkedList(LinkedList* head, int index){
 		printError("Can not remove item from Empty List.\n");
 	
 	else if(index >= head->length || index < 0)
-		printError("Index out of range.\n");
+		printError("Can not remove item Index out of range.\n");
 
 	else {
 

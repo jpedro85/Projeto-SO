@@ -10,6 +10,8 @@ void* waitForClients();
 
 void waitFirstConnection();
 
+void waitFor_waitForClients(int connectionIndex);
+
 void startServer();
 
 void stopServer();
