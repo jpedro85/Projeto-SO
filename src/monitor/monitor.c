@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 
 #include "registo.h"
 #include "../common/events.h"
@@ -24,9 +25,11 @@ int main(int argc , char *argv[] ){
 
     creatConnection();
 
+    sleep(5);
+
     fclose(file); // Close the file
 
     closeConnection();
-    printWarning("Monitor terminated successfully");
+    printSuccess("Monitor terminated successfully");
     return 0;
 }

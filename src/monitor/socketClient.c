@@ -32,6 +32,8 @@ void creatConnection(){
     /* Connect to server */
     if ( connect(serverSocket, (struct sockaddr *)&serverAddress, serverLength) < 0)
 		printFatalError("client: can not connect to server.");
+    else
+        printWarning("client: connected to server.");
 
 }
 
