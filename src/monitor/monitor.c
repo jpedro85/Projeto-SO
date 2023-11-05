@@ -36,8 +36,11 @@ int main(int argc , char *argv[] ){
         error = recvMsg(serverSocket,512,&str);
         if(error != 0)
             printError(strerror(error));
-        else
+        else{
+
             printSuccess(str);
+            break;
+        }
 
     }
 

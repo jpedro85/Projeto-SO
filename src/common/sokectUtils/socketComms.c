@@ -35,6 +35,10 @@ int sendMsg(int sendTo_fd, char* msg){
         
     }while(charLeft > 0);
 
+    charWritten = write(sendTo_fd, "\n", 1);
+    if(charWritten < 0)
+            return errno;
+
     return 0;
 
 }
