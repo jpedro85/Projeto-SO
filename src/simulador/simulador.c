@@ -33,7 +33,7 @@ int main( int argc , char *argv[] ){
 
     waitFirstConnection();
 
-    sleep(30);
+    sleep(20);
     printInfo("endSleep");
 
     addMsgToQueue("From Server Client is connected.");

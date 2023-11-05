@@ -28,7 +28,6 @@ pthread_mutex_t clientsList_mutex, serverActive_mutex ,sendMsgQueue_mutex;
 
 void* removeSendedMsgs(){
 
-    Msg* message;
     ListItem* item;
     int index = 0;
 
@@ -48,15 +47,28 @@ void* removeSendedMsgs(){
         ForEach_LinkedList((&sendMsgQueue), item){
 
             if( ((Msg*)(item->value))->numberOfSends == clientsList.length ){
-                free( ((Msg*)(item->value))->msg ); // cleaning string 
-                removeItemByIndex_LinkedList(&sendMsgQueue,index); // does the rest;
+            
+                if (item != NULL && item->value != NULL && ((Msg*)(item->value))->msg != NULL) {
+
+                    free( ((Msg*)(item->value))->msg); //freeing string
+                
+                } else {
+                    printError("Can not free string sended.");
+                }
+
+                removeItemByIndex_LinkedList(&sendMsgQueue,index);
             }
 
             index++;
         }
+        
 
         if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
         if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex."); 
+
+        index = 0;
+
+        pthread_testcancel();
     }
 
 }
@@ -141,7 +153,10 @@ void* sendMsgToClient( void* client ){
             printf("\033[1;32mserver: msg '%s' sended to client %d socket %d !\033[1;0m\n",message->msg, clientIndex, socketFd);
         }
 
+        pthread_testcancel();
     }
+
+
 }
 
 /**
@@ -208,6 +223,9 @@ void* waitForClients(){
         else{
             break;
         }
+
+
+        pthread_testcancel();
 
     }while(1);
     
@@ -281,10 +299,10 @@ void startServer(){
         printFatalError("Can not create thread for waitForClients.");
     }
 
-    // // creating a tread for handling the cleaning of sendMsgQueue.
-    // if ( pthread_create(&removeSendedMsgs_t, NULL, removeSendedMsgs, NULL) < 0 ){
-    //     printFatalError("Can not create thread for removeSendedMsgs.");
-    // }
+    // creating a tread for handling the cleaning of sendMsgQueue.
+    if ( pthread_create(&removeSendedMsgs_t, NULL, removeSendedMsgs, NULL) < 0 ){
+        printFatalError("Can not create thread for removeSendedMsgs.");
+    }
 
 }
 
@@ -302,7 +320,13 @@ void stopServer(){
     ListItem* item;
     ForEach_LinkedList((&clientsList),item){
         close( ((Client*)item->value)->socket );
+        pthread_cancel(((Client*)item->value)->thread);
     }
+
+    pthread_cancel(waitingForClients_t);
+    pthread_cancel(removeSendedMsgs_t);
+
+    //clean lists
 
     printWarning("server: server closed.");
 }
@@ -314,7 +338,13 @@ void addMsgToQueue(char* msg){
     if( message == NULL )
         printFatalError("Can not allocate memory for message.");
 
-    message->msg = msg;
+
+    message->msg = NULL; 
+    message->msg = (char*)malloc( sizeof(char) * (strlen(msg) + 1) ); 
+    if (message->msg == NULL) 
+        printFatalError("Failed to allocate memory for message content.");
+
+    strcpy(message->msg,msg);
     message->numberOfSends = 0;
     message->id = ++msgId;
 
