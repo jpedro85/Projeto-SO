@@ -10,8 +10,6 @@ void* waitForClients();
 
 void waitFirstConnection();
 
-void waitFor_waitForClients(int connectionIndex);
-
 void startServer();
 
 void stopServer();
@@ -26,6 +24,7 @@ typedef struct{
     
     pthread_t thread;
     int socket;
+    int index;
 
 }Client;
 
