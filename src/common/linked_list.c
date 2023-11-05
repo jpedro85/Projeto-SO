@@ -86,7 +86,7 @@ ListItem* getListItemByIndex_LinkedList(LinkedList* head, int index){
 		int currentIndex = 0;
 		ListItem* listItem_aux = head->first;
 
-		while ( listItem_aux->next != NULL){
+		while ( listItem_aux != NULL){
 			
 			if(currentIndex == index)
 				return listItem_aux;

@@ -1,6 +1,7 @@
 //#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include "../consoleAddons.h"
@@ -29,7 +30,7 @@ int sendMsg(int sendTo_fd, char* msg){
             return errno;
 
         charLeft -= charWritten;
-        *msg += charWritten;
+        msg += charWritten;
 
         
     }while(charLeft > 0);
@@ -51,13 +52,13 @@ int sendMsg(int sendTo_fd, char* msg){
  * @return an integer value. If the function is successful, it returns 0. If there is an error, it
  * returns an error code.
  */
-int recvMsg(int recvFrom_fd, int bufferSize /*, int maxBufferResize */, char** result){
+int recvMsg(int recvFrom_fd, int bufferSize, char** result){
 
     char readdenChar;
     int charsReadden = 0;
     int totalCharsReadden = 0;
   //  int numberOffResizes = 0;
-    
+
     *result = malloc(sizeof(char)*bufferSize);
     char* bufferPointer = *result;
     char* bufferResize;

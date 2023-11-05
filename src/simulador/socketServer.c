@@ -35,26 +35,28 @@ void* removeSendedMsgs(){
     while(1){
 
         if (pthread_mutex_lock(&serverActive_mutex) < 0) printFatalError("Can not lock serverActive_mutex.");
-        if(serverActive == 0)break;
+        if(serverActive == 0){
+            if (pthread_mutex_unlock(&serverActive_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
+            break;
+        }
         if (pthread_mutex_unlock(&serverActive_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
 
         
-        if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock sendMsgQueue_mutex.");
         if (pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
+        if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock sendMsgQueue_mutex.");
 
         ForEach_LinkedList((&sendMsgQueue), item){
 
             if( ((Msg*)(item->value))->numberOfSends == clientsList.length ){
                 free( ((Msg*)(item->value))->msg ); // cleaning string 
-                printError("Aqui1");
                 removeItemByIndex_LinkedList(&sendMsgQueue,index); // does the rest;
             }
 
             index++;
         }
 
-        if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex."); 
         if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
+        if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex."); 
     }
 
 }
@@ -68,7 +70,6 @@ void* removeSendedMsgs(){
  */
 void* sendMsgToClient( void* client ){
 
-    printError("aqui3");
     int socketFd = ((Client*)getValueByIndex_LInkedList(&clientsList, *((int*)client) ))->socket ;
     int error;
     Msg* message;
@@ -81,15 +82,20 @@ void* sendMsgToClient( void* client ){
     while(1){ 
 
         if (pthread_mutex_lock(&serverActive_mutex) < 0) printFatalError("Can not lock serverActive_mutex.");
-        if(serverActive == 0)break;
+        if(serverActive == 0){
+            if (pthread_mutex_unlock(&serverActive_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
+            break;
+        }
         if (pthread_mutex_unlock(&serverActive_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
 
         message = NULL;
         // getting msg to send
         if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock sendMsgQueue_mutex.");
         
-        if(sendMsgQueue.length == 0); 
+        if(sendMsgQueue.length == 0){
+            if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
             continue;
+        }
         
         ForEach_LinkedList((&sendMsgQueue), item){
 
@@ -145,6 +151,7 @@ void acceptClient(){
     
     int newSocketClient;
     clientLength = sizeof(clientAddress);
+    int clientIndex;
 
     newSocketClient = accept(serverSocket, (struct sockaddr *) &clientAddress, &clientLength);
     if (newSocketClient < 0){
@@ -164,16 +171,15 @@ void acceptClient(){
         client->socket = newSocketClient;
 
         // to ensure that a msg is not send while a new client is added to the list or a client is not added will a msg is being sended.
-        if( pthread_mutex_lock(&clientsList_mutex) < 0)
-            printFatalError("Can not lock clientsList_mutex.");
+        if( pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
 
         addValue_LinkedList(&clientsList,client);
+        clientIndex = clientsList.length-1;
 
-        if (pthread_mutex_unlock(&clientsList_mutex) < 0)
-            printFatalError("Can not unlock clientsList_mutex.");
+        if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex.");
 
         // creating a tread for handling the sending of msg to the new client.
-        if ( pthread_create(&(client->thread), NULL, sendMsgToClient, (void*)&(client->socket) ) < 0 ){
+        if ( pthread_create(&(client->thread), NULL, sendMsgToClient, (void*)(&clientIndex) ) < 0 ){
             printFatalError("Can not create thread for sendMsgToClient.");
         }
 
@@ -192,18 +198,15 @@ void* waitForClients(){
 
     do{
 
-        if (pthread_mutex_lock(&serverActive_mutex) < 0)
-            printFatalError("Can not lock serverActive_mutex.");
-
+        if (pthread_mutex_lock(&serverActive_mutex) < 0) printFatalError("Can not lock serverActive_mutex.");
         active = serverActive;
-
-        if (pthread_mutex_unlock(&serverActive_mutex) < 0)
-            printFatalError("Can not unlock serverActive_mutex.");
+        if (pthread_mutex_unlock(&serverActive_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
 
         if(active)
             acceptClient();
-        else
+        else{
             break;
+        }
 
     }while(1);
     
@@ -218,13 +221,9 @@ void waitFirstConnection(){
     int length = 0;
     while(1){
 
-        if( pthread_mutex_lock(&clientsList_mutex) < 0)
-            printFatalError("Can not lock clientsList_mutex.");
-            
+        if( pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
         length = clientsList.length;
-
-        if( pthread_mutex_unlock(&clientsList_mutex) < 0)
-            printFatalError("Can not unlock clientsList_mutex.");
+        if( pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex.");
 
         if(length > 0)
             return;   
@@ -282,10 +281,10 @@ void startServer(){
         printFatalError("Can not create thread for waitForClients.");
     }
 
-    // creating a tread for handling the cleaning of sendMsgQueue.
-    if ( pthread_create(&removeSendedMsgs_t, NULL, removeSendedMsgs, NULL) < 0 ){
-        printFatalError("Can not create thread for removeSendedMsgs.");
-    }
+    // // creating a tread for handling the cleaning of sendMsgQueue.
+    // if ( pthread_create(&removeSendedMsgs_t, NULL, removeSendedMsgs, NULL) < 0 ){
+    //     printFatalError("Can not create thread for removeSendedMsgs.");
+    // }
 
 }
 
@@ -312,20 +311,16 @@ void addMsgToQueue(char* msg){
 
     Msg* message = malloc( sizeof(Msg) );
 
-    if( message != NULL )
-        printFatalError("can not allocate memory for message.");
+    if( message == NULL )
+        printFatalError("Can not allocate memory for message.");
 
     message->msg = msg;
     message->numberOfSends = 0;
     message->id = ++msgId;
 
-    if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0)
-        printFatalError("Can not lock serverActive_mutex.");
-
+    if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock serverActive_mutex.");//presa
     addValue_LinkedList(&sendMsgQueue, message); 
-
-    if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0)
-        printFatalError("Can not unlock serverActive_mutex.");
+    if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
 
 }
 

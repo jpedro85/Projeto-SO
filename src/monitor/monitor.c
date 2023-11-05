@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "registo.h"
 #include "../common/events.h"
 #include "../common/consoleAddons.h"
 #include "socketClient.h"
+#include "../common/sokectUtils/socketComms.h"
+
+extern int serverSocket;
 
 int main(int argc , char *argv[] ){
 
@@ -25,7 +29,17 @@ int main(int argc , char *argv[] ){
 
     creatConnection();
 
-    sleep(5);
+    char* str;
+    int error;
+    while(1){
+        
+        error = recvMsg(serverSocket,512,&str);
+        if(error != 0)
+            printError(strerror(error));
+        else
+            printSuccess(str);
+
+    }
 
     fclose(file); // Close the file
 

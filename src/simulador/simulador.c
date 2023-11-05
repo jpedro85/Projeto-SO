@@ -23,15 +23,23 @@ int main( int argc , char *argv[] ){
     startServer();
 
     //  starting monitor
-    int error = fork();
-    if ( error == 0){
-        char* argvToPass[] = {"./build/monitor",NULL};
-        int a = execvp("./build/monitor",argvToPass);
+    // int error = fork();
+    // if ( error == 0){
+    //     char* argvToPass[] = {"./build/monitor",NULL};
+    //     int a = execvp("./build/monitor",argvToPass);
 
-    } else if( error < 0) 
-        printError("Couldn't start monitor.");
+    // } else if( error < 0) 
+    //     printError("Couldn't start monitor.");
 
     waitFirstConnection();
+
+    sleep(10);
+    printInfo("endSleep");
+
+    addMsgToQueue("From Server Client is connected.");
+    printInfo("Sleeping");
+    sleep(10);
+    printInfo("endSleep");
 
     printInfo("simulating.");
     stopServer();

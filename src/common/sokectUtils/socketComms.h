@@ -8,6 +8,6 @@ typedef struct{
 }Msg;
 
 int sendMsg(int sendTo_fd, char* msg);
-int recvMsg(int recvFrom_fd, int bufferSize /*, int maxBufferResizes */, char** result);
+int recvMsg(int recvFrom_fd, int bufferSize, char** result);
 
 #endif

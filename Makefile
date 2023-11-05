@@ -6,7 +6,7 @@ BUILD_DIR = ./build
 CFLAGS = -lpthread
 
 # Add common files if needed
-COMMONFILES = $(SRCDIR)/common/*.c  $(SRCDIR)/common/cjson/*.c 
+COMMONFILES = $(SRCDIR)/common/*.c  $(SRCDIR)/common/cjson/*.c  $(SRCDIR)/common/sokectUtils/*.c 
 
 # List of source files for monitor and simulador
 MONITOR_SRC = $(SRCDIR)/monitor/*.c
