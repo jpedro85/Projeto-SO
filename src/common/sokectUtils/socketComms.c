@@ -6,6 +6,7 @@
 
 #include "../consoleAddons.h"
 #include "../linked_list.h"
+#include "socketComms.h"
 
 /**
  * The function `sendMsg` sends a message to a file descriptor by writing the message in chunks until
@@ -45,33 +46,38 @@ int sendMsg(int sendTo_fd, char* msg){
 
 /**
  * The function `recvMsg` reads characters from a file descriptor until it encounters a newline or null
- * character, dynamically allocating memory for the result and resizing the buffer if necessary.
+ * character, dynamically resizing the buffer if necessary.
  * 
  * @param recvFrom_fd The file descriptor from which to receive the message.
- * @param bufferSize The bufferSize parameter specifies the size of the buffer used to store the
- * received message. It determines the maximum number of characters that can be read at once from the
- * recvFrom_fd file descriptor.
- * @param result result is a double pointer to a char. It is used to store the received message.
+ * @param bufferSize The bufferSize parameter is an integer that specifies the size of the buffer used
+ * to read characters from the file descriptor recvFrom_fd.
  * 
- * @return an integer value. If the function is successful, it returns 0. If there is an error, it
- * returns an error code.
+ * @return a pointer to a character array (string) that contains the received message. return null if an error ocurred
  */
-int recvMsg(int recvFrom_fd, int bufferSize, char** result){
+char* recvMsg(int recvFrom_fd, int bufferSize){
 
+    char* strReadden;
     char readdenChar;
     int charsReadden = 0;
     int totalCharsReadden = 0;
   //  int numberOffResizes = 0;
 
-    *result = malloc(sizeof(char)*bufferSize);
-    char* bufferPointer = *result;
-    char* bufferResize;
+    strReadden = malloc(sizeof(char)*bufferSize);
+    char* bufferPointer = strReadden;
+    char* strBufferResize;
     
     do{
 
         charsReadden = read(recvFrom_fd, &readdenChar, 1);
-        if(charsReadden < 0)
-            return errno;
+        if(charsReadden < 0){
+            printError("Can not read from file descriptor.");
+            printError(strerror(errno));
+            return NULL;
+        }else if(charsReadden == 0){
+            printError("client: Server closed connection");
+            errno = CONNECTION_CLOSED;
+            return NULL;
+        }
 
         *bufferPointer = readdenChar;
         totalCharsReadden++;
@@ -79,21 +85,25 @@ int recvMsg(int recvFrom_fd, int bufferSize, char** result){
         
         if( (totalCharsReadden % bufferSize) == 0){ // if the buffer is full
 
-            bufferResize = realloc(*result, sizeof(char) * (totalCharsReadden + bufferSize) );
+            strBufferResize = realloc(strReadden, sizeof(char) * (totalCharsReadden + bufferSize) );
          //   numberOffResizes++;
 
-            if(bufferResize == NULL){
-                free(*result);
-                return ENOMEM;
+            if(strBufferResize == NULL){
+                free(strReadden);
+                return NULL;
             }
 
-            *result = bufferResize;
-            bufferPointer = *result + totalCharsReadden;
+            strReadden = strBufferResize;
+            bufferPointer = strReadden + totalCharsReadden;
 
         } else 
             bufferPointer++;
 
     }while ( readdenChar != '\n' && readdenChar != '\0' /*&& numberOffResizes <= maxBufferResizes */);   
 
-    return 0; 
+    char* str = (char*)malloc(sizeof(char)*(totalCharsReadden+1) );
+    memcpy(str, strReadden, totalCharsReadden);
+    free(strReadden);
+
+    return str; 
 }

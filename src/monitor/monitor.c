@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 #include "registo.h"
 #include "../common/events.h"
@@ -29,19 +31,20 @@ int main(int argc , char *argv[] ){
 
     creatConnection();
 
-    char* str;
+    char* str = NULL;
     int error;
     while(1){
         
-        error = recvMsg(serverSocket,512,&str);
-        if(error != 0)
-            printError(strerror(error));
+
+        str = recvMsg(serverSocket,512);
+        if(str == NULL)
+            if(errno == CONNECTION_CLOSED)
+                break;
+            else
+                printError(strerror(errno));
         else{
-
             printSuccess(str);
-            break;
         }
-
     }
 
     fclose(file); // Close the file

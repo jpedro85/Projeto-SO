@@ -36,7 +36,12 @@ int main( int argc , char *argv[] ){
     sleep(20);
     printInfo("endSleep");
 
-    addMsgToQueue("From Server Client is connected.");
+    addMsgToQueue("From Server Client is connected.1234567890");
+    sleep(2);
+    addMsgToQueue("From Server second message.");
+    sleep(2);
+    addMsgToQueue("From Server third message.");
+    
     printInfo("Sleeping");
     sleep(10);
     printInfo("endSleep");

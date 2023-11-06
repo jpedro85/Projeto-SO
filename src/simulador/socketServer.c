@@ -57,6 +57,7 @@ void* removeSendedMsgs(){
                 }
 
                 removeItemByIndex_LinkedList(&sendMsgQueue,index);
+
             }
 
             index++;
@@ -120,15 +121,17 @@ void* sendMsgToClient( void* client ){
             //already sended waiting 
         }
 
-        if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
-
-        if(message == NULL)
+        
+        if(message == NULL){
+            if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
             continue; // all messages sended to client
+        }
 
         //sending msg
         error = sendMsg( socketFd, message->msg );
 
         if(error){
+
 
             printError( strerror(error) );
             printf("\033[1;31mserver: could not send '%s' to client %d socket !\033[1;0m\n",message->msg , clientIndex, socketFd );
@@ -142,16 +145,13 @@ void* sendMsgToClient( void* client ){
             //Msg retry send next's 3 cycles . if can't jumps this message;
         } else {  
 
-            // updating number of sends
-            if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock sendMsgQueue_mutex.");
-        
             message->numberOfSends++;
             lastMessage_id = message->id;
 
-            if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
-
             printf("\033[1;32mserver: msg '%s' sended to client %d socket %d !\033[1;0m\n",message->msg, clientIndex, socketFd);
         }
+
+        if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
 
         pthread_testcancel();
     }
@@ -319,7 +319,12 @@ void stopServer(){
 
     ListItem* item;
     ForEach_LinkedList((&clientsList),item){
-        close( ((Client*)item->value)->socket );
+
+        if( close( ((Client*)item->value)->socket ) < 0 ){
+            printf("\033[1;31merror: %s\nCould not close socket %d.\033[1;0m\n",strerror(errno),((Client*)item->value)->socket);
+        }else{
+            printf("\033[1;32mClosed socket %d.\033[1;0m\n",((Client*)item->value)->socket);
+        }
         pthread_cancel(((Client*)item->value)->thread);
     }
 
@@ -340,7 +345,7 @@ void addMsgToQueue(char* msg){
 
 
     message->msg = NULL; 
-    message->msg = (char*)malloc( sizeof(char) * (strlen(msg) + 1) ); 
+    message->msg = (char*)malloc( sizeof(char) * (strlen(msg)) ); 
     if (message->msg == NULL) 
         printFatalError("Failed to allocate memory for message content.");
 
