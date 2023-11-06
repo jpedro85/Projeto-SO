@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdio.h>
 
 #include "../consoleAddons.h"
 #include "../linked_list.h"
@@ -24,16 +25,18 @@ int sendMsg(int sendTo_fd, char* msg){
     int charWritten = 0;
 
     do{
+        
+        charWritten = write(sendTo_fd, msg, charLeft);//does not return erro immediately when the other end closes the stream;
 
-        charWritten = write(sendTo_fd, msg, charLeft);
-
-        if(charWritten < 0)
+        if(charWritten == 0 && charLeft > 0)
+            return CONNECTION_CLOSED;
+        else if(charWritten < 0){
             return errno;
-
+        }
+        
         charLeft -= charWritten;
         msg += charWritten;
 
-        
     }while(charLeft > 0);
 
     charWritten = write(sendTo_fd, "\n", 1);
@@ -74,7 +77,7 @@ char* recvMsg(int recvFrom_fd, int bufferSize){
             printError(strerror(errno));
             return NULL;
         }else if(charsReadden == 0){
-            printError("client: Server closed connection");
+            printError("Other side closed the connection");
             errno = CONNECTION_CLOSED;
             return NULL;
         }
