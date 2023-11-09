@@ -110,3 +110,26 @@ char* recvMsg(int recvFrom_fd, int bufferSize){
 
     return str; 
 }
+
+//free SendedTo list Item.
+void* freeSendedToItem(void* value){
+    free( (int*) value );
+}
+
+/**
+ * The function `freeMsgValues` frees the memory allocated in `Msg` struct, including its `msg`
+ * string and the linked list `sendedTo`.
+ * 
+ * @param value The parameter "value" is a void pointer that is being casted to a pointer of type
+ * "Msg".
+ */
+void* freeMsgValues(void* value){
+
+    Msg* msgToFree = (Msg*)value;  
+
+    if(msgToFree->msg)
+        free( msgToFree->msg ); //freeing string
+    
+    if(msgToFree->sendedTo.length > 0)
+        clear_linkedListItemsValueWithFunc( &(msgToFree->sendedTo) , freeSendedToItem ); // clear list sendedTo
+}

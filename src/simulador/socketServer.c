@@ -12,6 +12,8 @@
 #include "../common/linked_list.h"
 
 #include "socketServer.h"
+#include "client.h"
+#include "../common/mutexAddons.h"
 
 
 int serverSocket, serverLength, clientLength, pipeBrokeError;
@@ -36,9 +38,9 @@ pthread_mutex_t clientsList_mutex, serverActive_mutex, sendMsgQueue_mutex, pipeB
 int isServerActive(){
 
     int value;
-    if (pthread_mutex_lock(&serverActive_mutex) < 0) printFatalError("Can not lock serverActive_mutex.");
+    lockMutex(&serverActive_mutex,"serverActive_mutex");
     value = serverActive;
-    if (pthread_mutex_unlock(&serverActive_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
+    unlockMutex(&serverActive_mutex,"serverActive_mutex");
 
     return value;
 }
@@ -50,17 +52,17 @@ void* removeSendedMsgs(){
 
     while(isServerActive()){
         
-        if (pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
-        if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock sendMsgQueue_mutex.");
+        lockMutex(&clientsList_mutex,"clientsList_mutex");
+        lockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
 
         ForEach_LinkedList((&sendMsgQueue), item){
 
-            if( ((Msg*)(item->value))->numberOfSends == clientsList.length ){
+            if( ((Msg*)(item->value))->sendedTo.length == clientsList.length ){
             
-                if (item != NULL && item->value != NULL && ((Msg*)(item->value))->msg != NULL) {
+                if (item != NULL && item->value != NULL) {
+                    
+                    freeMsgValues(item->value);
 
-                    free( ((Msg*)(item->value))->msg); //freeing string
-                
                 } else {
                     printError("Can not free string sended.");
                 }
@@ -72,9 +74,8 @@ void* removeSendedMsgs(){
             index++;
         }
         
-
-        if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
-        if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex."); 
+        unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
+        unlockMutex(&clientsList_mutex,"clientsList_mutex");
 
         index = 0;
 
@@ -89,22 +90,35 @@ void* removeSendedMsgs(){
   * @param messageId message to jump.
   * @return Msg* message NULL if the is no message
   */
- Msg* chooseMsgToSend(int messageId){
+ Msg* chooseMsgToSend(int clientIndex){
 
     Msg* message = NULL;
     ListItem* item;
+    LinkedList* sendedToList;
+    ListItem* sendedToItem;
+    int sendedToHasClient = 0;
     // getting msg to send
-    if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock sendMsgQueue_mutex.");
-        
+    lockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
+
+    // for each msg in queue 
     ForEach_LinkedList((&sendMsgQueue), item){
 
-        if( ((Msg*)(item->value))->id != messageId){
-            message = (Msg*)(item->value);
+        sendedToList = &(((Msg*)(item->value))->sendedTo);
+        ForEach_LinkedList((sendedToList), sendedToItem){ 
+
+            if ( *((int*)(sendedToItem->value)) ==  clientIndex){
+                sendedToHasClient = 1;
+            }
         }
+
+        if(!sendedToHasClient){ // if client is NOT in return msg
+            message = (Msg*)(item->value);
+        }else
+            sendedToHasClient = 0; // if client is in msg->SendedTo next msg
         
     }
 
-    if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
+    unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
     return message;
 
  }
@@ -122,36 +136,30 @@ void* sendMsgToClient( void* client ){
     int error;
     Msg* message;
     ListItem* item;
-    int lastMessage_id;
     int retryNumber = 0;
 
     printf("\033[1;33mserver: client %d socket %d waiting for msg's to send.\033[1;0m\n", clientIndex , socketFd);
 
     while(isServerActive()){ 
 
-        message = chooseMsgToSend(lastMessage_id);        
-        if(message == NULL){
+        message = chooseMsgToSend(clientIndex);        
+        if(message == NULL)
             continue; // all messages sended to client
-        }
-
+        
         //sending msg
         error = sendMsg( socketFd, message->msg ); //SO emits SIGPIPE if socketFd was closed by the client.
 
         // check send error SIGPIPE when client closes connection
-        if (pthread_mutex_lock(&pipeBrokeError_mutex) < 0) printFatalError("Can not lock pipeBrokeError_mutex.");
+        lockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
         if(pipeBrokeError == clientIndex)
             error = CLOSED;
-        if (pthread_mutex_unlock(&pipeBrokeError_mutex) < 0) printFatalError("Can not lock pipeBrokeError_mutex.");
+        unlockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
 
-        if(error == CLOSED){
-            printf("\033[1;31mserver: could not send '%s' to client %d. Client closed connection to socket %d!\033[1;0m\n",message->msg , clientIndex, socketFd );
-            break;
-
-        } else if(error == CONNECTION_CLOSED){
+        if(error == CONNECTION_CLOSED || error == CLOSED){
                 
             printf("\033[1;31mserver: could not send '%s' to client %d.Client closed connection to socket %d!\033[1;0m\n",message->msg , clientIndex, socketFd );
 
-            if (pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
+            lockMutex(&clientsList_mutex,"clientsList_mutex");
             
             if ( clientsList.length - 1 == 0){
                 printWarning("No clients connected. Simulator exiting.");
@@ -160,7 +168,7 @@ void* sendMsgToClient( void* client ){
 
             removeItemByIndex_LinkedList(&clientsList,clientIndex);
 
-            if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
+            unlockMutex(&clientsList_mutex,"clientsList_mutex");
 
             break;
                 
@@ -171,20 +179,18 @@ void* sendMsgToClient( void* client ){
 
             if( (++retryNumber) == 3 ){
                 retryNumber = 0;
-                lastMessage_id = message->id;
             }
 
             //Msg retry send next's 3 cycles . if can't jumps this message;
         } else {  
 
-            if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock sendMsgQueue_mutex.");
+            lockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
 
-            message->numberOfSends++;
-            lastMessage_id = message->id;
+            addInt_LinkedList( &(message->sendedTo), clientIndex );
 
             printf("\033[1;32mserver: msg '%s' sended to client %d socket %d !\033[1;0m\n",message->msg, clientIndex, socketFd);
 
-            if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock sendMsgQueue_mutex.");
+            unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
         }
 
         pthread_testcancel();
@@ -205,8 +211,8 @@ void* checkConnection( void* client ){
 
             printf("\033[1;31mserver: Client %d closed connection to socket %d!\033[1;0m\n", clientIndex, socketFd );
 
-            if (pthread_mutex_lock(&pipeBrokeError_mutex) < 0) printFatalError("Can not lock pipeBrokeError_mutex.");
-            if (pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
+            lockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
+            lockMutex(&clientsList_mutex,"clientsList_mutex");
 
             if ( clientsList.length - 1 == 0){
                 printWarning("No clients connected. Simulator exiting.");
@@ -216,8 +222,8 @@ void* checkConnection( void* client ){
 
             pipeBrokeError = clientIndex;
 
-            if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
-            if (pthread_mutex_unlock(&pipeBrokeError_mutex) < 0) printFatalError("Can not lock pipeBrokeError_mutex.");
+            unlockMutex(&clientsList_mutex,"clientsList_mutex");
+            unlockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
 
             break;
             
@@ -255,13 +261,13 @@ void acceptClient(){
 
         client->socket = newSocketClient;
 
-        // to ensure that a msg is not send while a new client is added to the list or a client is not added will a msg is being sended.
-        if( pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
+        // to ensure that a msg is not send while a new client is added to the list or prevent a client is not added while a msg is being sended.
+        lockMutex(&clientsList_mutex,"clientsList_mutex");
 
         addValue_LinkedList(&clientsList,client);
         client->index = clientsList.length - 1;
 
-        if (pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex.");
+        unlockMutex(&clientsList_mutex,"clientsList_mutex");
 
         // creating a tread for handling the sending of msg to the new client.
         if ( pthread_create(&(client->thread_send), NULL, sendMsgToClient, (void*)(client) ) < 0 ){
@@ -303,10 +309,10 @@ void waitFirstConnection(){
 
     int length = 0;
     while(1){
-
-        if( pthread_mutex_lock(&clientsList_mutex) < 0) printFatalError("Can not lock clientsList_mutex.");
+        
+        lockMutex(&clientsList_mutex,"clientsList_mutex");
         length = clientsList.length;
-        if( pthread_mutex_unlock(&clientsList_mutex) < 0) printFatalError("Can not unlock clientsList_mutex.");
+        unlockMutex(&clientsList_mutex,"clientsList_mutex");
 
         if(length > 0)
             return;   
@@ -315,8 +321,8 @@ void waitFirstConnection(){
 }
 
 
-void sigpipe_handler(int signum) {
-    printWarning("server: Tried to send for a closed connection.");
+void sigpipeHandler(int signum) {
+    printWarning("server: Tried to send msg for a closed connection.");
 }
 
 /**
@@ -365,7 +371,7 @@ void startServer(){
     serverActive = 1;
     pipeBrokeError = -1;
 
-     signal(SIGPIPE, sigpipe_handler);
+    signal(SIGPIPE, sigpipeHandler);
     // creating a tread for handling next connections;
     if ( pthread_create(&waitingForClients_t, NULL, waitForClients, NULL) < 0 ){
         printFatalError("Can not create thread for waitForClients.");
@@ -384,11 +390,10 @@ void startServer(){
  */
 void stopServer(){
 
-    if (pthread_mutex_lock(&serverActive_mutex) < 0) printFatalError("Can not lock serverActive_mutex.");
+    lockMutex(&serverActive_mutex,"serverActive_mutex");
     serverActive = 0;
-    if (pthread_mutex_unlock(&serverActive_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
+    unlockMutex(&serverActive_mutex,"serverActive_mutex");
 
-    close(serverSocket);
 
     ListItem* item;
     ForEach_LinkedList((&clientsList),item){
@@ -402,14 +407,23 @@ void stopServer(){
         pthread_cancel(((Client*)item->value)->thread_recv);
     }
 
+    close(serverSocket);
+
     pthread_cancel(waitingForClients_t);
     pthread_cancel(removeSendedMsgs_t);
 
-    //clean lists
+    clear_linkedListItemsValueWithFunc(&sendMsgQueue,freeMsgValues);
+    clear_linkedListItemsValueWithFunc(&clientsList,freeClientValues);
 
     printWarning("server: server closed.");
 }
 
+/**
+ * The function `addMsgToQueue` adds a message to a queue, allocating memory for the message and its
+ * content.
+ * 
+ * @param msg A pointer to a character array containing the message to be added to the queue.
+ */
 void addMsgToQueue(char* msg){
 
     Msg* message = malloc( sizeof(Msg) );
@@ -424,12 +438,12 @@ void addMsgToQueue(char* msg){
         printFatalError("Failed to allocate memory for message content.");
 
     strcpy(message->msg,msg);
-    message->numberOfSends = 0;
+    initialize_LinkedList(&(message->sendedTo));
     message->id = ++msgId;
 
-    if (pthread_mutex_lock(&sendMsgQueue_mutex) < 0) printFatalError("Can not lock serverActive_mutex.");//presa
+    lockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
     addValue_LinkedList(&sendMsgQueue, message); 
-    if (pthread_mutex_unlock(&sendMsgQueue_mutex) < 0) printFatalError("Can not unlock serverActive_mutex.");
+    unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
 
 }
 

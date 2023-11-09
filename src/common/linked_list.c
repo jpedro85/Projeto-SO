@@ -167,6 +167,29 @@ void clear_linkedList(LinkedList* head){
 
 }
 
+void clear_linkedListItemsValueWithFunc(LinkedList* head, clearValueFunc freeStruct ){
+
+	if( !isEmpty_LinkedList(head) ){
+
+		ListItem* listItemToRemove;
+		ListItem* listItem_aux = head->first;
+
+		while(listItem_aux != NULL){
+
+			listItemToRemove = listItem_aux;
+			listItem_aux = listItem_aux->next;
+			freeStruct(listItemToRemove->value);
+			free(listItemToRemove);
+		}
+
+		head->length = 0;
+		head->first = NULL;
+
+	}else	
+		printError("Can not clear items from empty linked list.");
+
+}
+
 void printInts_LinkedList(LinkedList* mayTesteList){
 
     // ListItem* a;

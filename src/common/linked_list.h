@@ -2,14 +2,16 @@
 #define LINKED_LIST_H
 #define ForEach_LinkedList(head,item) for( item = head->first ; item != NULL ; item = item->next )
 #include <stdbool.h>
-typedef struct ListItem {
+
+typedef void*(clearValueFunc)(void* itemValue);
+typedef struct ListItem{
 
 	struct ListItem* next;
 	void* value ;
 
 }ListItem;
 
-typedef struct LinkedList{
+typedef struct {
 	
 	ListItem* first;
 	int length;
@@ -42,6 +44,7 @@ bool isEmpty_LinkedList(LinkedList* head);
 
 //clear
 void clear_linkedList(LinkedList* head);
+void clear_linkedListItemsValueWithFunc(LinkedList* head, clearValueFunc freeStruct );
 
 //print functions
 void print_LinkedList(LinkedList* head);
