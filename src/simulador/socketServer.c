@@ -15,7 +15,6 @@
 #include "client.h"
 #include "../common/mutexAddons.h"
 
-
 int serverSocket, serverLength, clientLength, pipeBrokeError;
 struct sockaddr_un clientAddress, serverAddress;
 
@@ -47,37 +46,43 @@ int isServerActive(){
 
 void* removeSendedMsgs(){
 
-    ListItem* item;
-    int index = 0;
+    ListItem* item_msg;
+    Msg* msgToFree = NULL;
+    int index = -1;
+    int remove = 0;
 
     while(isServerActive()){
         
         lockMutex(&clientsList_mutex,"clientsList_mutex");
         lockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
 
-        ForEach_LinkedList((&sendMsgQueue), item){
-
-            if( ((Msg*)(item->value))->sendedTo.length == clientsList.length ){
-            
-                if (item != NULL && item->value != NULL) {
-                    
-                    freeMsgValues(item->value);
-
-                } else {
-                    printError("Can not free string sended.");
-                }
-
-                removeItemByIndex_LinkedList(&sendMsgQueue,index);
-
-            }
+        ForEach_LinkedList((&sendMsgQueue), item_msg){
 
             index++;
+
+            if( ((Msg*)(item_msg->value))->sendedTo.length == clientsList.length ){
+                printf("f:%d ,%s",((Msg*)(item_msg->value))->sendedTo.length ,((Msg*)(item_msg->value))->msg);
+                msgToFree = (Msg*)(item_msg->value);
+                remove = 1;
+                break;
+            }
         }
-        
+
+        if(index != -1 && remove){//exists item_msg and is not sended to all clients but they will be sended eventually
+            if(msgToFree){
+                freeMsgValues(msgToFree);
+                removeItemByIndex_LinkedList(&sendMsgQueue,index);
+                printWarning("removedaaa");
+                msgToFree = NULL;
+                remove = 0;
+            }else //Already Sended;
+                printError("Can not free msg sended.");
+        }
+            
         unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
         unlockMutex(&clientsList_mutex,"clientsList_mutex");
 
-        index = 0;
+        index = -1;
 
         pthread_testcancel();
     }
@@ -104,14 +109,14 @@ void* removeSendedMsgs(){
     ForEach_LinkedList((&sendMsgQueue), item){
 
         sendedToList = &(((Msg*)(item->value))->sendedTo);
-        ForEach_LinkedList((sendedToList), sendedToItem){ 
+        ForEach_LinkedList( sendedToList, sendedToItem){ 
 
             if ( *((int*)(sendedToItem->value)) ==  clientIndex){
                 sendedToHasClient = 1;
             }
         }
 
-        if(!sendedToHasClient){ // if client is NOT in return msg
+        if(!sendedToHasClient){ // if client is NOT in return sendedTo
             message = (Msg*)(item->value);
         }else
             sendedToHasClient = 0; // if client is in msg->SendedTo next msg
@@ -155,21 +160,8 @@ void* sendMsgToClient( void* client ){
             error = CLOSED;
         unlockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
 
-        if(error == CONNECTION_CLOSED || error == CLOSED){
-                
-            printf("\033[1;31mserver: could not send '%s' to client %d.Client closed connection to socket %d!\033[1;0m\n",message->msg , clientIndex, socketFd );
-
-            lockMutex(&clientsList_mutex,"clientsList_mutex");
-            
-            if ( clientsList.length - 1 == 0){
-                printWarning("No clients connected. Simulator exiting.");
-                exit(1);
-            }
-
-            removeItemByIndex_LinkedList(&clientsList,clientIndex);
-
-            unlockMutex(&clientsList_mutex,"clientsList_mutex");
-
+        if(error == CONNECTION_CLOSED || error == CLOSED){   
+            printf("\033[1;31mserver: could not send to client %d.Client closed connection to socket %d!\033[1;0m\n", clientIndex, socketFd );
             break;
                 
         } else if(error < 0 ){
@@ -203,6 +195,7 @@ void* checkConnection( void* client ){
 
     int socketFd = ((Client*)client)->socket ;
     int clientIndex = ((Client*)client)->index ; 
+    int numberOfClients = 0;
 
     while(isServerActive()){
         
@@ -211,19 +204,19 @@ void* checkConnection( void* client ){
 
             printf("\033[1;31mserver: Client %d closed connection to socket %d!\033[1;0m\n", clientIndex, socketFd );
 
-            lockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
             lockMutex(&clientsList_mutex,"clientsList_mutex");
+            numberOfClients = clientsList.length;
+            removeItemByIndex_LinkedList(&clientsList,clientIndex);
+            unlockMutex(&clientsList_mutex,"clientsList_mutex");
+           
+            lockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
+            pipeBrokeError = clientIndex;
+            unlockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
 
-            if ( clientsList.length - 1 == 0){
-                printWarning("No clients connected. Simulator exiting.");
+            if ( numberOfClients == 0){
+                printWarning("No clients connected. Simulator exiting. ");
                 exit(1);
             }
-            removeItemByIndex_LinkedList(&clientsList,clientIndex);
-
-            pipeBrokeError = clientIndex;
-
-            unlockMutex(&clientsList_mutex,"clientsList_mutex");
-            unlockMutex(&pipeBrokeError_mutex,"pipeBrokeError_mutex");
 
             break;
             
@@ -251,7 +244,7 @@ void acceptClient(){
             return;
 
         printError(strerror(errno));
-        printFatalError("server:Can not accept Client.");
+        printFatalError("server: can not accept Client.");
 
     } else {
 
@@ -377,7 +370,7 @@ void startServer(){
         printFatalError("Can not create thread for waitForClients.");
     }
 
-    // creating a tread for handling the cleaning of sendMsgQueue.
+    //creating a tread for handling the cleaning of sendMsgQueue.
     if ( pthread_create(&removeSendedMsgs_t, NULL, removeSendedMsgs, NULL) < 0 ){
         printFatalError("Can not create thread for removeSendedMsgs.");
     }
@@ -394,7 +387,10 @@ void stopServer(){
     serverActive = 0;
     unlockMutex(&serverActive_mutex,"serverActive_mutex");
 
+    pthread_cancel(waitingForClients_t);
+    //pthread_cancel(removeSendedMsgs_t);
 
+    lockMutex(&clientsList_mutex,"clientsList_mutex");
     ListItem* item;
     ForEach_LinkedList((&clientsList),item){
 
@@ -406,14 +402,23 @@ void stopServer(){
         pthread_cancel(((Client*)item->value)->thread_send);
         pthread_cancel(((Client*)item->value)->thread_recv);
     }
+    unlockMutex(&clientsList_mutex,"clientsList_mutex");
 
-    close(serverSocket);
+    if (close(serverSocket) < 0){
+        printError(strerror(errno));
+    }
 
-    pthread_cancel(waitingForClients_t);
-    pthread_cancel(removeSendedMsgs_t);
+    //segmentation
+    // lockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
+    //     if(sendMsgQueue.length > 0);
+    //         clear_linkedListItemsValueWithFunc(&sendMsgQueue,freeMsgValues);
+    // unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
 
-    clear_linkedListItemsValueWithFunc(&sendMsgQueue,freeMsgValues);
-    clear_linkedListItemsValueWithFunc(&clientsList,freeClientValues);
+    // lockMutex(&clientsList_mutex,"clientsList_mutex");
+    //     if(clientsList.length > 0)
+    //         clear_linkedListItemsValueWithFunc(&clientsList,freeClientValues);
+    // unlockMutex(&clientsList_mutex,"clientsList_mutex");
+
 
     printWarning("server: server closed.");
 }
@@ -430,7 +435,6 @@ void addMsgToQueue(char* msg){
 
     if( message == NULL )
         printFatalError("Can not allocate memory for message.");
-
 
     message->msg = NULL; 
     message->msg = (char*)malloc( sizeof(char) * (strlen(msg)+1) ); 
