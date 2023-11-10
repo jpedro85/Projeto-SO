@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 #include "../common/consoleAddons.h"
-#include "../common/sokectUtils/socketUtil.h"
+#include "../common/socketUtils/socketUtil.h"
 
 
 int serverSocket, serverLength;

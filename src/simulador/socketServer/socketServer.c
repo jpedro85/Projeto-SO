@@ -6,14 +6,14 @@
 #include <stdlib.h>
 #include <signal.h>
 
-#include "../common/consoleAddons.h"
-#include "../common/sokectUtils/socketUtil.h"
-#include "../common/sokectUtils/socketComms.h"
-#include "../common/linked_list.h"
+#include "../../common/consoleAddons.h"
+#include "../../common/socketUtils/socketUtil.h"
+#include "../../common/socketUtils/socketComms.h"
+#include "../../common/linked_list.h"
 
 #include "socketServer.h"
 #include "client.h"
-#include "../common/mutexAddons.h"
+#include "../../common/mutexAddons.h"
 
 int serverSocket, serverLength, clientLength, pipeBrokeError;
 struct sockaddr_un clientAddress, serverAddress;
@@ -61,7 +61,6 @@ void* removeSendedMsgs(){
             index++;
 
             if( ((Msg*)(item_msg->value))->sendedTo.length == clientsList.length ){
-                printf("f:%d ,%s",((Msg*)(item_msg->value))->sendedTo.length ,((Msg*)(item_msg->value))->msg);
                 msgToFree = (Msg*)(item_msg->value);
                 remove = 1;
                 break;
@@ -72,7 +71,7 @@ void* removeSendedMsgs(){
             if(msgToFree){
                 freeMsgValues(msgToFree);
                 removeItemByIndex_LinkedList(&sendMsgQueue,index);
-                printWarning("removedaaa");
+                //printWarning("removedaaa");
                 msgToFree = NULL;
                 remove = 0;
             }else //Already Sended;
@@ -199,7 +198,7 @@ void* checkConnection( void* client ){
 
     while(isServerActive()){
         
-        recvMsg(socketFd,1);
+        recvMsg(socketFd,1,0);
         if( errno == CONNECTION_CLOSED){
 
             printf("\033[1;31mserver: Client %d closed connection to socket %d!\033[1;0m\n", clientIndex, socketFd );
@@ -409,16 +408,15 @@ void stopServer(){
     }
 
     //segmentation
-    // lockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
-    //     if(sendMsgQueue.length > 0);
-    //         clear_linkedListItemsValueWithFunc(&sendMsgQueue,freeMsgValues);
-    // unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
+    lockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
+    if(sendMsgQueue.length > 0)
+        clear_linkedListItemsValueWithFunc(&sendMsgQueue,freeMsgValues);
+    unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
 
-    // lockMutex(&clientsList_mutex,"clientsList_mutex");
-    //     if(clientsList.length > 0)
-    //         clear_linkedListItemsValueWithFunc(&clientsList,freeClientValues);
-    // unlockMutex(&clientsList_mutex,"clientsList_mutex");
-
+    lockMutex(&clientsList_mutex,"clientsList_mutex");
+    if(clientsList.length > 0)
+        clear_linkedListItemsValueWithFunc(&clientsList,freeClientValues);
+    unlockMutex(&clientsList_mutex,"clientsList_mutex");
 
     printWarning("server: server closed.");
 }
@@ -450,4 +448,3 @@ void addMsgToQueue(char* msg){
     unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
 
 }
-

@@ -1,6 +1,7 @@
 #ifndef SOCKETCOMMS_H
 #define SOCKETCOMMS_H
 #define CONNECTION_CLOSED 10
+#define BUFERFULL
 
 #include "../linked_list.h"
 
@@ -11,7 +12,7 @@ typedef struct{
 }Msg;
 
 int sendMsg(int sendTo_fd, char* msg);
-char* recvMsg(int recvFrom_fd, int bufferSize);
+char* recvMsg(int recvFrom_fd, int bufferSize, int maxResizes);
 
 void* freeMsgValues(void* value);
 
