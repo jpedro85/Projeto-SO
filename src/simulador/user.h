@@ -13,9 +13,5 @@ typedef struct
 
 
 void* createParkClients();
-void createClient(int waitTime);
-void removeClient();
-void chooseAction();
-void chooseAttraction();
 
 #endif
