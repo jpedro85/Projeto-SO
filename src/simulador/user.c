@@ -110,7 +110,9 @@ void *simulateUserActions(void *client)
     }
 }
 
-// TODO remove client form the park and open the semaphore
+/**
+ * The function removes a client and signals that a parking space is available.
+ */
 void removeClient()
 {
     printf("\nChoose to Leave");
