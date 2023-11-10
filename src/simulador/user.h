@@ -2,6 +2,8 @@
 #define USER_H
 
 #include <pthread.h>
+#include <stdbool.h>
+
 
 typedef struct
 {
@@ -13,5 +15,13 @@ typedef struct
 
 
 void* createParkClients();
+void createClient(int waitTime);
+void createRandomClient(User *user);
+void *simulateUserActions(void *client);
+int chooseAction();
+void chooseAttraction();
+void removeClient(User *client);
+bool canClientBeOnAttraction();
+
 
 #endif

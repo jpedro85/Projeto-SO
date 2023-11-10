@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
@@ -15,14 +14,6 @@ pthread_t parkClientThread;
 
 #define LEAVE_PARK 0
 #define STAY_AT_PARK 1
-
-void createClient(int waitTime);
-void createRandomClient(User *user);
-void *simulateUserActions(void *client);
-int chooseAction();
-void chooseAttraction();
-void removeClient(User *client);
-bool canClientBeOnAttraction();
 
 /**
  * The function creates park clients with random arrival times.
@@ -160,15 +151,7 @@ void chooseAttraction(User *client)
 bool canClientBeOnAttraction(User *client, Attraction *attraction)
 {
     // TODO checks for the age, if its open or not, if its running
-    if (client->age < attraction->minAge)
-    {
-        return false;
-    }
-    else if (attraction->maxAge != 0 && client->age > attraction->maxAge)
-    {
-        return false;
-    }
-    else if (!attraction->isOpen)
+    if (client->age < attraction->minAge || (attraction->maxAge != 0 && client->age > attraction->maxAge) || !attraction->isOpen)
     {
         return false;
     }
