@@ -15,4 +15,6 @@ typedef struct {
 
 }Park;
 
+void initParkSemaphores();
+
 #endif

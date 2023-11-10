@@ -4,7 +4,10 @@
 #include "park.h"
 #include "simulationConf.h"
 
-Park park;
-SimulationConf simulationConf;
+#include <semaphore.h>
+
+extern Park park;
+extern SimulationConf simulationConf;
+extern sem_t parkVacancy;
 
 #endif

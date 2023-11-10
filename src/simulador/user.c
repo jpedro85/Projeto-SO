@@ -1,7 +1,7 @@
 #include "user.h"
-#include "globals.h"
 #include "socketServer.h"
 #include "attraction.h"
+#include "globals.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,10 +12,6 @@
 
 int id = 0;
 pthread_t parkClientThread;
-sem_t parkVacancy;
-
-Park park;
-SimulationConf simulationConf;
 
 #define LEAVE_PARK 0
 #define STAY_AT_PARK 1
@@ -37,6 +33,8 @@ void *createParkClients()
     // * For now its in infinite while loop
     while (true)
     {
+        sem_wait(&parkVacancy);
+
         // Randomizes arrival time between the clients
         int userWaitingTime = rand() % (simulationConf.averageClientArriveTime_ms - simulationConf.toleranceClientArriveTime_ms) + simulationConf.toleranceClientArriveTime_ms;
         printf("waiting Time: %d s", userWaitingTime);
@@ -116,6 +114,7 @@ void *simulateUserActions(void *client)
 void removeClient()
 {
     printf("\nChoose to Leave");
+    sem_post(&parkVacancy);
     pthread_exit(0);
 }
 
@@ -126,7 +125,7 @@ void removeClient()
  */
 int chooseAction()
 {
-    return (rand() % 100 < 50) ? LEAVE_PARK : STAY_AT_PARK;
+    return ((rand() % 100 +1) <= 0) ? LEAVE_PARK : STAY_AT_PARK;
 }
 
 void chooseAttraction(User *client)
@@ -140,7 +139,7 @@ void chooseAttraction(User *client)
     // If not it leaves the chooses another action
     if (!canClientBeOnAttraction(client, attractionChosen))
     {
-        printf("The client %d is not permitted to enter the attraction %s", client->id, attractionChosen->name);
+        printf("\nThe client %d is not permitted to enter the attraction %s", client->id, attractionChosen->name);
         return;
     }
 

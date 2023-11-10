@@ -2,16 +2,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "file_loadConf.h"
 #include "../common/linked_list.h"
 #include "../common/consoleAddons.h"
 #include "../common/cjson/cJSON.h"
 #include "socketServer.h"
+#include "globals.h"
 #include "user.h"
-
-extern Park park;
-extern SimulationConf simulationConf;
+#include "park.h"
 
 pthread_t simulationStartThread;
 
@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
 
     loadConfig(&park, &simulationConf, simulationConfFile);
 
+    initParkSemaphores();
     startSimulation();
 
     // startServer();
@@ -76,7 +77,7 @@ void startSimulation()
     else
     {
         printf("Simulation Started");
-        pthread_join(simulationStartThread,0);
+        pthread_join(simulationStartThread, 0);
     }
 }
 
