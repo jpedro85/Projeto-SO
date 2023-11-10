@@ -21,7 +21,7 @@ void createRandomClient(User *user);
 void *simulateUserActions(void *client);
 int chooseAction();
 void chooseAttraction();
-void removeClient();
+void removeClient(User *client);
 bool canClientBeOnAttraction();
 
 /**
@@ -29,15 +29,12 @@ bool canClientBeOnAttraction();
  */
 void *createParkClients()
 {
-    // TODO: Use a semaphore to only create new Clients when theres vacancy on the park
-    // * For now its in infinite while loop
     while (true)
     {
         sem_wait(&parkVacancy);
 
         // Randomizes arrival time between the clients
         int userWaitingTime = rand() % (simulationConf.averageClientArriveTime_ms - simulationConf.toleranceClientArriveTime_ms) + simulationConf.toleranceClientArriveTime_ms;
-        printf("waiting Time: %d s", userWaitingTime);
 
         createClient(userWaitingTime);
     }
@@ -52,19 +49,19 @@ void *createParkClients()
 void createClient(int waitTime)
 {
     // Converting waitTime thats in ms to microsecond as usleep works with that unit of time
-    int witTimeToMicrosecond = waitTime * 1000;
+    int waitTimeToMicrosecond = waitTime * 1000;
     // Simulating the waiting time with usleep function
-    usleep(witTimeToMicrosecond);
+    usleep(waitTimeToMicrosecond);
 
     // Creating the new Client with random values
     User newUser;
     createRandomClient(&newUser);
     pthread_create(&parkClientThread, NULL, simulateUserActions, &newUser);
 
-    printf("\n=========================================\n");
-    printf("user id: %d\n", newUser.id);
-    printf("user age: %d\n", newUser.age);
-    printf("user has vip Pass: %d\n", newUser.vipPass);
+    // printf("\n=========================================\n");
+    // printf("user id: %d\n", newUser.id);
+    // printf("user age: %d\n", newUser.age);
+    // printf("user has vip Pass: %d\n", newUser.vipPass);
 }
 
 /**
@@ -91,6 +88,9 @@ void createRandomClient(User *user)
  */
 void *simulateUserActions(void *client)
 {
+    char formattedString[100];
+    sprintf(formattedString, "\nThe client %d has entered the park", ((User *)client)->id);
+    addMsgToQueue(formattedString);
     while (true)
     {
         User *parsedClient = (User *)client;
@@ -105,7 +105,7 @@ void *simulateUserActions(void *client)
         }
         else
         {
-            removeClient();
+            removeClient(parsedClient);
         }
     }
 }
@@ -113,9 +113,11 @@ void *simulateUserActions(void *client)
 /**
  * The function removes a client and signals that a parking space is available.
  */
-void removeClient()
+void removeClient(User *client)
 {
-    printf("\nChoose to Leave");
+    char formattedString[100];
+    sprintf(formattedString, "\nThe client %d has left the park", client->id);
+    addMsgToQueue(formattedString);
     sem_post(&parkVacancy);
     pthread_exit(0);
 }
@@ -127,7 +129,7 @@ void removeClient()
  */
 int chooseAction()
 {
-    return ((rand() % 100 +1) <= 0) ? LEAVE_PARK : STAY_AT_PARK;
+    return (((rand() % 100) + 1) <= 5) ? LEAVE_PARK : STAY_AT_PARK;
 }
 
 void chooseAttraction(User *client)
@@ -141,7 +143,10 @@ void chooseAttraction(User *client)
     // If not it leaves the chooses another action
     if (!canClientBeOnAttraction(client, attractionChosen))
     {
-        printf("\nThe client %d is not permitted to enter the attraction %s", client->id, attractionChosen->name);
+        char formattedString[100];
+        sprintf(formattedString, "\nThe client %d is not permitted to enter the attraction %s", client->id, attractionChosen->name);
+        addMsgToQueue(formattedString);
+
         return;
     }
 

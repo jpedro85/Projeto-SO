@@ -377,10 +377,11 @@ void startServer(){
         printFatalError("Can not create thread for waitForClients.");
     }
 
-    // creating a tread for handling the cleaning of sendMsgQueue.
-    if ( pthread_create(&removeSendedMsgs_t, NULL, removeSendedMsgs, NULL) < 0 ){
-        printFatalError("Can not create thread for removeSendedMsgs.");
-    }
+    // ! Deprecated Method
+    // // creating a tread for handling the cleaning of sendMsgQueue.
+    // if ( pthread_create(&removeSendedMsgs_t, NULL, removeSendedMsgs, NULL) < 0 ){
+    //     printFatalError("Can not create thread for removeSendedMsgs.");
+    // }
 
     
 }
@@ -425,7 +426,6 @@ void stopServer(){
  * @param msg A pointer to a character array containing the message to be added to the queue.
  */
 void addMsgToQueue(char* msg){
-
     Msg* message = malloc( sizeof(Msg) );
 
     if( message == NULL )

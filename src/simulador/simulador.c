@@ -34,27 +34,17 @@ int main(int argc, char *argv[])
     initParkSemaphores();
     startSimulation();
 
-    // startServer();
+    //  starting monitor
+    // int error = fork();
+    // if ( error == 0){
+    //     char* argvToPass[] = {"./build/monitor",NULL};
+    //     int a = execvp("./build/monitor",argvToPass);
 
-    // //  starting monitor
-    // // int error = fork();
-    // // if ( error == 0){
-    // //     char* argvToPass[] = {"./build/monitor",NULL};
-    // //     int a = execvp("./build/monitor",argvToPass);
-
-    // // } else if( error < 0)
-    // //     printError("Couldn't start monitor.");
-
-    // waitFirstConnection();
+    // } else if( error < 0)
+    //     printError("Couldn't start monitor.");
 
     // sleep(10);
     // printInfo("endSleep");
-
-    // addMsgToQueue("From Server Client is connected.1234567890");
-    // sleep(2);
-    // addMsgToQueue("From Server second message.");
-    // sleep(2);
-    // addMsgToQueue("From Server third message.");
 
     // printInfo("Sleeping");
     // sleep(10);
@@ -77,6 +67,8 @@ void startSimulation()
     else
     {
         printf("Simulation Started");
+        startServer();
+        waitFirstConnection();
         pthread_join(simulationStartThread, 0);
     }
 }
