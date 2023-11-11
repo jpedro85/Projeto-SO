@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <stdbool.h>
+#include "attraction.h"
 
 typedef struct
 {
@@ -14,7 +15,7 @@ typedef struct
 
 
 void* createParkClients();
-void createClient(int waitTime);
+void createParkClient(int waitTime);
 void createRandomClient(User *user);
 void *simulateUserActions(void *client);
 int chooseAction();

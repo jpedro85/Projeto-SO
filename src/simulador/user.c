@@ -1,5 +1,5 @@
 #include "user.h"
-#include "socketServer.h"
+#include "socketServer/socketServer.h"
 #include "attraction.h"
 #include "globals.h"
 
@@ -27,7 +27,7 @@ void *createParkClients()
         // Randomizes arrival time between the clients
         int userWaitingTime = rand() % (simulationConf.averageClientArriveTime_ms - simulationConf.toleranceClientArriveTime_ms) + simulationConf.toleranceClientArriveTime_ms;
 
-        createClient(userWaitingTime);
+        createParkClient(userWaitingTime);
     }
 }
 
@@ -37,7 +37,7 @@ void *createParkClients()
  * @param waitTime The waitTime parameter is the amount of time in milliseconds that the function
  * should wait before creating a new client.
  */
-void createClient(int waitTime)
+void createParkClient(int waitTime)
 {
     // Converting waitTime thats in ms to microsecond as usleep works with that unit of time
     int waitTimeToMicrosecond = waitTime * 1000;
