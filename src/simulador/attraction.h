@@ -5,7 +5,7 @@
 
 #include "../common/linked_list.h"
 
-typedef struct Attraction{
+typedef struct {
 
     char* name ;
     int minAge, maxAge ;
@@ -22,7 +22,5 @@ typedef struct Attraction{
     LinkedList waitingLine;
 
 }Attraction;
-
-
 
 #endif

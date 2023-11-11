@@ -79,14 +79,14 @@ void* getValueByIndex_LInkedList(LinkedList* head, int index){
 ListItem* getListItemByIndex_LinkedList(LinkedList* head, int index){
 
 	if(index >= head->length || index < 0){
-		printError("Index out of range.\n");
+		printError("Can not get item index out of range.\n");
 
 	} else {
 
 		int currentIndex = 0;
 		ListItem* listItem_aux = head->first;
 
-		while ( listItem_aux->next != NULL){
+		while ( listItem_aux != NULL){
 			
 			if(currentIndex == index)
 				return listItem_aux;
@@ -106,7 +106,7 @@ void removeItemByIndex_LinkedList(LinkedList* head, int index){
 		printError("Can not remove item from Empty List.\n");
 	
 	else if(index >= head->length || index < 0)
-		printError("Index out of range.\n");
+		printError("Can not remove item Index out of range.\n");
 
 	else {
 
@@ -156,6 +156,29 @@ void clear_linkedList(LinkedList* head){
 
 			listItemToRemove = listItem_aux;
 			listItem_aux = listItem_aux->next;
+			free(listItemToRemove);
+		}
+
+		head->length = 0;
+		head->first = NULL;
+
+	}else	
+		printError("Can not clear items from empty linked list.");
+
+}
+
+void clear_linkedListItemsValueWithFunc(LinkedList* head, clearValueFunc freeStruct ){
+
+	if( !isEmpty_LinkedList(head) ){
+
+		ListItem* listItemToRemove;
+		ListItem* listItem_aux = head->first;
+
+		while(listItem_aux != NULL){
+
+			listItemToRemove = listItem_aux;
+			listItem_aux = listItem_aux->next;
+			freeStruct(listItemToRemove->value);
 			free(listItemToRemove);
 		}
 

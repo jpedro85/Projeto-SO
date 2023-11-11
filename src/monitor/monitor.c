@@ -1,8 +1,16 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
 
 #include "registo.h"
 #include "../common/events.h"
 #include "../common/consoleAddons.h"
+#include "socketClient.h"
+#include "../common/socketUtils/socketComms.h"
+
+extern int serverSocket;
 
 int main(int argc , char *argv[] ){
 
@@ -21,8 +29,27 @@ int main(int argc , char *argv[] ){
     writeRecord(file, 1, UserLeft, 5);
     writeRecord(file, 0, SimulationStart, 6);
 
+    creatConnection();
+
+    char* str = NULL;
+    int error;
+    while(1){
+        
+
+        str = recvMsg(serverSocket,512,4);
+        if(str == NULL)
+            if(errno == CONNECTION_CLOSED)
+                break;
+            else
+                printError(strerror(errno));
+        else{
+            printSuccess(str);
+        }
+    }
+
     fclose(file); // Close the file
 
-    printWarning("Monitor terminated successfully");
+    closeConnection();
+    printSuccess("Monitor terminated successfully");
     return 0;
 }

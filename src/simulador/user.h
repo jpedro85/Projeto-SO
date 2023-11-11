@@ -1,8 +1,26 @@
 #ifndef USER_H
 #define USER_H
 
-typedef struct {
+#include <pthread.h>
+#include <stdbool.h>
 
-}User;
+typedef struct
+{
+    int id;
+    int age;
+    int vipPass;
+    pthread_t currentAttraction; // Assuming pthread_t is the type for a thread
+} User;
+
+
+void* createParkClients();
+void createClient(int waitTime);
+void createRandomClient(User *user);
+void *simulateUserActions(void *client);
+int chooseAction();
+void chooseAttraction(User *client);
+void removeClient(User *client);
+bool canClientBeOnAttraction(User *client, Attraction *attraction);
+
 
 #endif

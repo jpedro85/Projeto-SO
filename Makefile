@@ -6,7 +6,8 @@ BUILD_DIR = ./build
 CFLAGS = -lpthread
 
 # Add common files if needed
-COMMONFILES = $(SRCDIR)/common/*.c  $(SRCDIR)/common/cjson/*.c 
+COMMONFILES = $(SRCDIR)/common/*.c  $(SRCDIR)/common/cjson/*.c  $(SRCDIR)/common/socketUtils/*.c 
+SIMULADORFOLDERS =  $(SRCDIR)/simulador/socketServer/*.c
 
 # List of source files for monitor and simulador
 MONITOR_SRC = $(SRCDIR)/monitor/*.c
@@ -29,7 +30,7 @@ monitor:
 	$(CC) -g $(MONITOR_SRC) $(COMMONFILES) $(CFLAGS) -o $(MONITOR_OBJ)
 
 simulador:
-	$(CC) -g $(SIMULADOR_SRC) $(COMMONFILES) $(CFLAGS) -o $(SIMULADOR_OBJ)
+	$(CC) -g $(SIMULADOR_SRC) $(COMMONFILES) $(SIMULADORFOLDERS) $(CFLAGS) -o $(SIMULADOR_OBJ)
 
 run-monitor:
 	$(MONITOR_OBJ)
