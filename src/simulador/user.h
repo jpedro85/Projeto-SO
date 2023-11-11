@@ -18,9 +18,9 @@ void createClient(int waitTime);
 void createRandomClient(User *user);
 void *simulateUserActions(void *client);
 int chooseAction();
-void chooseAttraction();
+void chooseAttraction(User *client);
 void removeClient(User *client);
-bool canClientBeOnAttraction();
+bool canClientBeOnAttraction(User *client, Attraction *attraction);
 
 
 #endif
