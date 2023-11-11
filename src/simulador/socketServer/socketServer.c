@@ -10,6 +10,12 @@
 #include "../../common/socketUtils/socketUtil.h"
 #include "../../common/socketUtils/socketComms.h"
 #include "../../common/linked_list.h"
+#include "../../common/cjson/cJSON.h"
+#include "../../common/events.h"
+#include "../../common/date.h"
+#include "../user.h"
+#include "../attraction.h"
+#include "../park.h"
 
 #include "socketServer.h"
 #include "client.h"
@@ -67,11 +73,10 @@ void* removeSendedMsgs(){
             }
         }
 
-        if(index != -1 && remove){//exists item_msg and is not sended to all clients but they will be sended eventually
+        if(index != -1 && remove){
             if(msgToFree){
                 freeMsgValues(msgToFree);
                 removeItemByIndex_LinkedList(&sendMsgQueue,index);
-                //printWarning("removedaaa");
                 msgToFree = NULL;
                 remove = 0;
             }else //Already Sended;
@@ -190,6 +195,14 @@ void* sendMsgToClient( void* client ){
 
 }
 
+/**
+ * The function `checkConnection` checks if a client has closed its connection to the server and
+ * performs necessary actions.
+ * 
+ * @param client The parameter `client` is a void pointer that is cast to a `Client*` type inside the
+ * function. It is assumed that `Client` is a struct information about the
+ * client, such as the socket file descriptor (`socketFd`) and the client index (`clientIndex`).
+ */
 void* checkConnection( void* client ){
 
     int socketFd = ((Client*)client)->socket ;
@@ -227,6 +240,47 @@ void* checkConnection( void* client ){
 }
 
 /**
+ * The function creates a new client and adds it to a linked list of clients.
+ * 
+ * @param clientSocket The clientSocket parameter is an integer that represents the socket file
+ * descriptor for the client connection.
+ * 
+ * @return a pointer to a Client structure.
+ */
+Client* createClient( int clientSocket ){
+
+    Client* client = (Client*)malloc(sizeof(Client));
+    if(client == NULL)
+        printFatalError("server: can not create client.");
+
+    client->socket = clientSocket;
+
+    // to ensure that a msg is not send while a new client is added to the list or prevent a client is not added while a msg is being sended.
+    lockMutex(&clientsList_mutex,"clientsList_mutex");
+    addValue_LinkedList(&clientsList,client);
+    client->index = clientsList.length - 1;
+    unlockMutex(&clientsList_mutex,"clientsList_mutex");
+
+    return client;
+}
+
+/**
+ * The function creates two threads, one for sending messages to a client and one for receiving
+ * messages from a client.
+ */
+void createClientConnectionsHandler(Client* client){
+    // creating a tread for handling the sending of msg to the new client.
+    if ( pthread_create(&(client->thread_send), NULL, sendMsgToClient, (void*)(client) ) < 0 ){
+        printFatalError("Can not create thread for sendMsgToClient.");
+    }
+
+    // creating a tread for handling the receive from client.
+    if ( pthread_create(&(client->thread_recv), NULL, checkConnection, (void*)(client) ) < 0 ){
+        printFatalError("Can not create thread for checkConnection.");
+    }
+}
+
+/**
  * The acceptClient function accepts a new client connection and adds it to a linked list of clients,
  * while ensuring thread safety.
  */
@@ -247,31 +301,12 @@ void acceptClient(){
 
     } else {
 
-        Client* client = (Client*)malloc(sizeof(Client));
-        if(client == NULL)
-            printFatalError("server: can not create client.");
-
-        client->socket = newSocketClient;
-
-        // to ensure that a msg is not send while a new client is added to the list or prevent a client is not added while a msg is being sended.
+        Client* client = createClient(newSocketClient);
+        createClientConnectionsHandler(client);
+    
         lockMutex(&clientsList_mutex,"clientsList_mutex");
-
-        addValue_LinkedList(&clientsList,client);
-        client->index = clientsList.length - 1;
-
-        unlockMutex(&clientsList_mutex,"clientsList_mutex");
-
-        // creating a tread for handling the sending of msg to the new client.
-        if ( pthread_create(&(client->thread_send), NULL, sendMsgToClient, (void*)(client) ) < 0 ){
-            printFatalError("Can not create thread for sendMsgToClient.");
-        }
-
-        // creating a tread for handling the receive from client.
-        if ( pthread_create(&(client->thread_recv), NULL, checkConnection, (void*)(client) ) < 0 ){
-            printFatalError("Can not create thread for checkConnection.");
-        }
-
         printf("\033[1;33mserver: client connected. Now %d are connected!\033[1;0m\n",clientsList.length);
+        unlockMutex(&clientsList_mutex,"clientsList_mutex");
             
     }
 }
