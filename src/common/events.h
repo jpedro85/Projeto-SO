@@ -3,6 +3,13 @@
 
 #include "cjson/cJSON.h"
 #include "date.h"
+
+typedef struct {
+    int event;
+    Date date;
+    cJSON eventInfoJson;
+}EventInfo;
+
 typedef enum {
     SIMULATOR_EVENT,
     PARK_EVENT,
@@ -26,6 +33,7 @@ typedef enum {
     CLOSED,
     RIDE_STARTED,
     RIDE_ENDED,
+    ENTERING_DENIED,
 }AttractionEvent;
 
 typedef enum {
@@ -33,6 +41,7 @@ typedef enum {
     LEAVING_PARK,
     ENTERING_WAITING_LINE,
     LEAVING_WAITING_LINE,
+    USING_VIP,
     ENTERING_RIDE,
     LEAVING_RIDE,
     ENTERING_ATTRACTION,
@@ -40,40 +49,32 @@ typedef enum {
 }UserEvent;
 
 // Functions to stringify an event
-char* SimulatorEventToJSON_String(SimulatorEvent simulationEvent, User user, Date date, cJSON* simulationEventInfo);
-char* ParkEventToJSON_String(ParkEvent parkEvent, Date date, cJSON* parkEventInfo);
-char* AttractionToJSON_String(AttractionEvent userEvent, Date date, cJSON* attractionEventInfo);
-char* UserEventToJSON_String(UserEvent userEvent, Date date, cJSON* userEventInfo);
+char* eventToJSON_String(EventType eventType, EventInfo eventInfo);
 
 // Functions to specify event info for SimulatorEvent
-cJSON* EvenInfoToJson_SimulationStarted();
-cJSON* EvenInfoToJson_SimulationEnded();
-cJSON* EvenInfoToJson_SimulationError(); // esta 
+cJSON* evenInfoToJson_SimulationStarted();
+cJSON* evenInfoToJson_SimulationEnded();
+cJSON* evenInfoToJson_SimulationError(); // esta 
 
 // Functions to specify event info for ParkEvent 
-cJSON* EvenInfoToJson_ParkOpen(); // esta 
-cJSON* EvenInfoToJson_ParkClosed(); // esta 
+cJSON* evenInfoToJson_ParkOpen(); // esta 
+cJSON* evenInfoToJson_ParkClosed(); // esta 
 
 // Functions to specify event info for AttractionEvent
-cJSON* EvenInfoToJson_AttractionOpen();  
-cJSON* EvenInfoToJson_AttractionClosed();
-cJSON* EvenInfoToJson_AttractionRideStarted();  
-cJSON* EvenInfoToJson_AttractionRideEnded();
+cJSON* evenInfoToJson_AttractionOpen();  
+cJSON* evenInfoToJson_AttractionClosed();
+cJSON* evenInfoToJson_AttractionRideStarted();  
+cJSON* evenInfoToJson_AttractionRideEnded();
 
 // Functions to specify event info for AttractionEvent
-cJSON* EvenInfoToJson_UserEnteringPark();  
-cJSON* EvenInfoToJson_UserLeavingPark();
-cJSON* EvenInfoToJson_UserEnteringWaitingLine();  
-cJSON* EvenInfoToJson_UserLeavingWaitingLine();
-cJSON* EvenInfoToJson_UserEnteringRide();  
-cJSON* EvenInfoToJson_UserLeavingRide();
-cJSON* EvenInfoToJson_UserEnteringAttraction();  
-cJSON* EvenInfoToJson_UserLeavingAttraction();
-
-
-
-
+cJSON* evenInfoToJson_UserEnteringPark();  
+cJSON* evenInfoToJson_UserLeavingPark();
+cJSON* evenInfoToJson_UserEnteringWaitingLine(/*bool vipAcess*/);  
+cJSON* evenInfoToJson_UserLeavingWaitingLine();
+cJSON* evenInfoToJson_UserEnteringRide();  
+cJSON* evenInfoToJson_UserLeavingRide();
+cJSON* evenInfoToJson_UserEnteringAttraction();  
+cJSON* evenInfoToJson_UserLeavingAttraction();
 
 char* eventMessage(int event);
-
 #endif
