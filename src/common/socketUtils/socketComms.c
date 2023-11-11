@@ -21,7 +21,7 @@
  */
 int sendMsg(int sendTo_fd, char* msg){
 
-    int charLeft = strlen(msg);
+    int charLeft = strlen(msg) + 1;// +1 because of \0
     int charWritten = 0;
 
     do{
@@ -38,8 +38,8 @@ int sendMsg(int sendTo_fd, char* msg){
         msg += charWritten;
 
     }while(charLeft > 0);
-
-    charWritten = write(sendTo_fd, "\n", 1);
+    
+   // charWritten = write(sendTo_fd, "\0", 1);
     if(charWritten < 0)
             return errno;
 
@@ -57,15 +57,13 @@ int sendMsg(int sendTo_fd, char* msg){
  * 
  * @return a pointer to a character array (string) that contains the received message. return null if an error ocurred
  */
-char* recvMsg(int recvFrom_fd, int bufferSize){
+char* recvMsg(int recvFrom_fd, int bufferSize, int maxResizes){
 
-    char* strReadden;
     char readdenChar;
-    int charsReadden = 0;
-    int totalCharsReadden = 0;
-  //  int numberOffResizes = 0;
+    int charsReadden, totalCharsReadden, numberOffResizes = 0;
+    int totalBufferSize = bufferSize;
 
-    strReadden = malloc(sizeof(char)*bufferSize);
+    char* strReadden = malloc(sizeof(char)*bufferSize);
     char* bufferPointer = strReadden;
     char* strBufferResize;
     
@@ -75,23 +73,32 @@ char* recvMsg(int recvFrom_fd, int bufferSize){
         if(charsReadden < 0){
             printError("Can not read from file descriptor.");
             printError(strerror(errno));
+            free(strReadden);
             return NULL;
         }else if(charsReadden == 0){
             printError("Other side closed the connection");
             errno = CONNECTION_CLOSED;
+            free(strReadden);
             return NULL;
         }
 
         *bufferPointer = readdenChar;
         totalCharsReadden++;
         
-        
-        if( (totalCharsReadden % bufferSize) == 0){ // if the buffer is full
+        // if the buffer is full
+        if( (totalCharsReadden % bufferSize) == 0){ 
 
-            strBufferResize = realloc(strReadden, sizeof(char) * (totalCharsReadden + bufferSize) );
-         //   numberOffResizes++;
+            totalBufferSize = totalCharsReadden + bufferSize;
+            strBufferResize = realloc(strReadden, sizeof(char) * (totalBufferSize) );
+            numberOffResizes++;
 
             if(strBufferResize == NULL){
+                free(strReadden);
+                return NULL;
+            }
+
+            if(numberOffResizes > maxResizes){
+                errno = ENOBUFS;
                 free(strReadden);
                 return NULL;
             }
@@ -105,8 +112,13 @@ char* recvMsg(int recvFrom_fd, int bufferSize){
     }while ( readdenChar != '\n' && readdenChar != '\0' /*&& numberOffResizes <= maxBufferResizes */);   
 
     char* str = (char*)malloc(sizeof(char)*(totalCharsReadden+1) );
+    bzero(str, totalCharsReadden+1 ); // clean allocated str
+
     memcpy(str, strReadden, totalCharsReadden);
-    free(strReadden);
+    str[totalCharsReadden] = '\0'; //  adding last character
+
+    bzero(strReadden,totalBufferSize); // clean buffer
+    free(strReadden); // free memory
 
     return str; 
 }
@@ -127,9 +139,11 @@ void* freeMsgValues(void* value){
 
     Msg* msgToFree = (Msg*)value;  
 
-    if(msgToFree->msg)
+    if(msgToFree->msg){
         free( msgToFree->msg ); //freeing string
-    
-    if(msgToFree->sendedTo.length > 0)
+    }
+  
+    if(msgToFree->sendedTo.length > 0){
         clear_linkedListItemsValueWithFunc( &(msgToFree->sendedTo) , freeSendedToItem ); // clear list sendedTo
+    }
 }

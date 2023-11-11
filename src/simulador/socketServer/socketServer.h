@@ -2,7 +2,7 @@
 #define SOCKETSERVER_H
 #define CLOSED 11
 
-#include "../common/sokectUtils/socketComms.h"
+#include "../../common/socketUtils/socketComms.h"
 
 void acceptClient();
 

@@ -8,7 +8,7 @@
 #include "../common/events.h"
 #include "../common/consoleAddons.h"
 #include "socketClient.h"
-#include "../common/sokectUtils/socketComms.h"
+#include "../common/socketUtils/socketComms.h"
 
 extern int serverSocket;
 
@@ -36,7 +36,7 @@ int main(int argc , char *argv[] ){
     while(1){
         
 
-        str = recvMsg(serverSocket,512);
+        str = recvMsg(serverSocket,512,4);
         if(str == NULL)
             if(errno == CONNECTION_CLOSED)
                 break;
