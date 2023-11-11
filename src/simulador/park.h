@@ -2,6 +2,7 @@
 #define PARK_H
 
 #include <stdbool.h>
+#include <semaphore.h>
 
 #include "../common/linked_list.h"
 
@@ -12,6 +13,8 @@ typedef struct {
 
     LinkedList scheduleList;
     LinkedList attractions;
+
+    sem_t parkVacancy;
 
 }Park;
 

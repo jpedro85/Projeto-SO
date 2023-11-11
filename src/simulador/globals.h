@@ -8,6 +8,5 @@
 
 extern Park park;
 extern SimulationConf simulationConf;
-extern sem_t parkVacancy;
 
 #endif

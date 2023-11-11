@@ -4,7 +4,6 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-
 typedef struct
 {
     int id;

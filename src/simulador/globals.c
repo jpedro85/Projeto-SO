@@ -2,4 +2,4 @@
 
 Park park;
 SimulationConf simulationConf;
-sem_t parkVacancy;
+
