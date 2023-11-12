@@ -1,13 +1,17 @@
-#include "user.h"
-#include "socketServer.h"
-#include "attraction.h"
-#include "globals.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
+
+#include "user.h"
+#include "socketServer/socketServer.h"
+#include "../common/consoleAddons.h"
+#include "../common/events.h"
+#include "../common/date.h"
+#include "attraction.h"
+#include "globals.h"
+
 
 int id = 0;
 pthread_t parkClientThread;
@@ -19,7 +23,8 @@ pthread_t parkClientThread;
  * The function creates park clients with random arrival times.
  */
 void *createParkClients()
-{
+{   
+    printWarning("server: started creating users.");
     while (true)
     {
         sem_wait(&park.parkVacancy);
@@ -27,7 +32,7 @@ void *createParkClients()
         // Randomizes arrival time between the clients
         int userWaitingTime = rand() % (simulationConf.averageClientArriveTime_ms - simulationConf.toleranceClientArriveTime_ms) + simulationConf.toleranceClientArriveTime_ms;
 
-        createClient(userWaitingTime);
+        createParkClient(userWaitingTime);
     }
 }
 
@@ -37,7 +42,7 @@ void *createParkClients()
  * @param waitTime The waitTime parameter is the amount of time in milliseconds that the function
  * should wait before creating a new client.
  */
-void createClient(int waitTime)
+void createParkClient(int waitTime)
 {
     // Converting waitTime thats in ms to microsecond as usleep works with that unit of time
     int waitTimeToMicrosecond = waitTime * 1000;
@@ -45,14 +50,17 @@ void createClient(int waitTime)
     usleep(waitTimeToMicrosecond);
 
     // Creating the new Client with random values
-    User newUser;
-    createRandomClient(&newUser);
-    pthread_create(&parkClientThread, NULL, simulateUserActions, &newUser);
+    User* newUser = (User*)malloc(sizeof(User));
+    createRandomClient(newUser);
+    pthread_create(&parkClientThread, NULL, simulateUserActions, newUser);
 
-    // printf("\n=========================================\n");
-    // printf("user id: %d\n", newUser.id);
-    // printf("user age: %d\n", newUser.age);
-    // printf("user has vip Pass: %d\n", newUser.vipPass);
+    Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
+    EvenInfo_SimulationUserCreated userInfo;
+    userInfo.userId = newUser->id;
+    userInfo.userAge = newUser->age;
+    userInfo.hasVipPass = newUser->vipPass;
+    createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
+    addMsgToQueue(eventToJSON_String(userCreated,6));
 }
 
 /**
@@ -79,13 +87,13 @@ void createRandomClient(User *user)
  */
 void *simulateUserActions(void *client)
 {
+    User *parsedClient = (User *)client;
+
     char formattedString[100];
-    sprintf(formattedString, "\nThe client %d has entered the park", ((User *)client)->id);
+    sprintf(formattedString, "\nThe client %d has entered the park", parsedClient->id);
     addMsgToQueue(formattedString);
     while (true)
     {
-        User *parsedClient = (User *)client;
-
         // Randomizing the client action of whether wants to continue on the park or leave
         int clientChoice = chooseAction();
 

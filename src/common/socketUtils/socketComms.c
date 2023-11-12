@@ -59,6 +59,11 @@ int sendMsg(int sendTo_fd, char* msg){
  */
 char* recvMsg(int recvFrom_fd, int bufferSize, int maxResizes){
 
+    if(bufferSize <= 0 || maxResizes < 0){
+        printError("Wrong Parameters");
+        return NULL;
+    }
+
     char readdenChar;
     int charsReadden, totalCharsReadden, numberOffResizes = 0;
     int totalBufferSize = bufferSize;

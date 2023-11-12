@@ -4,7 +4,7 @@
 #include "../common/events.h"
 
 void writeRecord(FILE* file, int entity, int event, int time) {
-    char* strEvent = eventMessage(event);
+    char* strEvent = "Teste";
     char* string = NULL;
 
     // Calculate the length of the string

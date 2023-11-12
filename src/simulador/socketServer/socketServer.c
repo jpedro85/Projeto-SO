@@ -166,6 +166,14 @@ void* sendMsgToClient( void* client ){
 
         if(error == CONNECTION_CLOSED || error == CLOSED){   
             printf("\033[1;31mserver: could not send to client %d.Client closed connection to socket %d!\033[1;0m\n", clientIndex, socketFd );
+
+            lockMutex(&clientsList_mutex,"clientsList_mutex");
+            if ( clientsList.length == 0){
+                printWarning("No clients connected. Simulator exiting. ");
+                exit(1);
+            }
+            unlockMutex(&clientsList_mutex,"clientsList_mutex");
+
             break;
                 
         } else if(error < 0 ){

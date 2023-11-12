@@ -3,18 +3,19 @@
 
 #include <pthread.h>
 #include <stdbool.h>
+#include "attraction.h"
 
 typedef struct
 {
     int id;
     int age;
     int vipPass;
-    pthread_t currentAttraction; // Assuming pthread_t is the type for a thread
+   // pthread_t currentAttraction; // Assuming pthread_t is the type for a thread
 } User;
 
 
 void* createParkClients();
-void createClient(int waitTime);
+void createParkClient(int waitTime);
 void createRandomClient(User *user);
 void *simulateUserActions(void *client);
 int chooseAction();
