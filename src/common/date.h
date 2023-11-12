@@ -7,6 +7,9 @@ typedef struct Date{
     int minute;
 }Date;
 
-Date getCurrentSimulationDate(struct timespec beginTime, struct timespec currentTime, int dayLength_s );
+Date getCurrentSimulationDate(struct timespec beginTime, int dayLength_s );
+
+char* dateToString(Date date);
+
 
 #endif

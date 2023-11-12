@@ -1,13 +1,17 @@
-#include "user.h"
-#include "socketServer/socketServer.h"
-#include "attraction.h"
-#include "globals.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
+
+#include "user.h"
+#include "socketServer/socketServer.h"
+#include "../common/consoleAddons.h"
+#include "../common/events.h"
+#include "../common/date.h"
+#include "attraction.h"
+#include "globals.h"
+
 
 int id = 0;
 pthread_t parkClientThread;
@@ -19,7 +23,8 @@ pthread_t parkClientThread;
  * The function creates park clients with random arrival times.
  */
 void *createParkClients()
-{
+{   
+    printWarning("server: started creating users.");
     while (true)
     {
         sem_wait(&park.parkVacancy);
@@ -45,14 +50,17 @@ void createParkClient(int waitTime)
     usleep(waitTimeToMicrosecond);
 
     // Creating the new Client with random values
-    User newUser;
-    createRandomClient(&newUser);
-    pthread_create(&parkClientThread, NULL, simulateUserActions, &newUser);
+    User* newUser = (User*)malloc(sizeof(User));
+    createRandomClient(newUser);
+    pthread_create(&parkClientThread, NULL, simulateUserActions, newUser);
 
-    // printf("\n=========================================\n");
-    // printf("user id: %d\n", newUser.id);
-    // printf("user age: %d\n", newUser.age);
-    // printf("user has vip Pass: %d\n", newUser.vipPass);
+    Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
+    EvenInfo_SimulationUserCreated userInfo;
+    userInfo.userId = newUser->id;
+    userInfo.userAge = newUser->age;
+    userInfo.hasVipPass = newUser->vipPass;
+    createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
+    addMsgToQueue(eventToJSON_String(userCreated,6));
 }
 
 /**
@@ -79,13 +87,13 @@ void createRandomClient(User *user)
  */
 void *simulateUserActions(void *client)
 {
+    User *parsedClient = (User *)client;
+
     char formattedString[100];
-    sprintf(formattedString, "\nThe client %d has entered the park", ((User *)client)->id);
+    sprintf(formattedString, "\nThe client %d has entered the park", parsedClient->id);
     addMsgToQueue(formattedString);
     while (true)
     {
-        User *parsedClient = (User *)client;
-
         // Randomizing the client action of whether wants to continue on the park or leave
         int clientChoice = chooseAction();
 

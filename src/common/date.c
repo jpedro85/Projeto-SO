@@ -1,5 +1,8 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 
+#include "string_utils.h"
 #include "date.h"
 #include "consoleAddons.h"
 #define NANO_S_TO_SECONDS 1000000000.0
@@ -14,7 +17,10 @@
  * @param dayLength_s The parameter "dayLength_s" represents the length of a day in seconds. 
  * @return a variable of type Date.
  */
-Date getCurrentSimulationDate(struct timespec beginTime, struct timespec currentTime, int dayLength_s ){
+Date getCurrentSimulationDate(struct timespec beginTime, int dayLength_s ){
+
+    struct timespec currentTime;
+    clock_gettime(CLOCK_REALTIME,&currentTime);
 
     const long beginTime_ns = (beginTime.tv_sec * NANO_S_TO_SECONDS) + beginTime.tv_nsec;
     const long currentTime_ns = (currentTime.tv_sec * NANO_S_TO_SECONDS) + currentTime.tv_nsec;
@@ -35,4 +41,18 @@ Date getCurrentSimulationDate(struct timespec beginTime, struct timespec current
     date.minute = (minute > 60 ) ? 60 : minute;
     
     return date;
+}
+
+/**
+ * The function "dateToString" converts a Date object into a string representation.
+ * 
+ * @param date The "date" parameter is of type "Date".
+ * 
+ * @return a pointer to a character array (string) in the format "d: [day] h: [hour] m: [minute]".
+ */
+char* dateToString(Date date){
+
+    char* strDate;
+    asprintf(&strDate,"d:%d h:%d m:%d ",date.day,date.hour,date.minute);
+    return strDate;
 }
