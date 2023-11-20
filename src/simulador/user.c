@@ -18,7 +18,8 @@ pthread_t parkClientThread;
 
 #define LEAVE_PARK 0
 #define STAY_AT_PARK 1
-
+#define LEAVE_ATTRACTION 0
+#define STAY_AT_ATTRACTION 1
 /**
  * The function creates park clients with random arrival times.
  */
@@ -77,6 +78,7 @@ void createRandomClient(User *user)
     // TODO alter probability to have vip pass depending on configuration file
     int hasVipPass = rand() % 100 < 20 ? 1 : 0;
     user->vipPass = hasVipPass;
+    user->currentAttraction=-1;
 }
 
 /**
@@ -85,13 +87,14 @@ void createRandomClient(User *user)
  *
  * @param client The "client" parameter is a pointer to a User object.
  */
-void *simulateUserActions(void *client)
-{
+void *simulateUserActions(void *client) {
+    
     User *parsedClient = (User *)client;
 
     char formattedString[100];
     sprintf(formattedString, "\nThe client %d has entered the park", parsedClient->id);
     addMsgToQueue(formattedString);
+
     while (true)
     {
         // Randomizing the client action of whether wants to continue on the park or leave
@@ -105,6 +108,7 @@ void *simulateUserActions(void *client)
         else
         {
             removeClient(parsedClient);
+            break;
         }
     }
 }
@@ -128,20 +132,22 @@ void removeClient(User *client)
  */
 int chooseAction()
 {
+    //TODO: Change Probabilities of each case
+    if(user.currentAttraction!=-1){
+        return (((rand() % 100) + 1) <= 20) ? LEAVE_ATTRACTION : STAY_AT_ATTRACTION;
+    }
     return (((rand() % 100) + 1) <= 5) ? LEAVE_PARK : STAY_AT_PARK;
 }
 
-void chooseAttraction(User *client)
-{
+void chooseAttraction(User *client) {
     // Making a random choice between 0 and the number of attractions to enter an attraction
     int parkAttractionsCount = park.attractions.length;
     int attractionChosenIndex = rand() % parkAttractionsCount;
-    Attraction *attractionChosen = (Attraction *)getValueByIndex_LInkedList(&park.attractions, attractionChosenIndex);
+    Attraction *attractionChosen = (Attraction *)getValueByIndex_LinkedList(&park.attractions, attractionChosenIndex);
 
     // If the client meets the requirements or not to enter the ride
-    // If not it leaves the chooses another action
-    if (!canClientBeOnAttraction(client, attractionChosen))
-    {
+    // If not, it leaves and chooses another action
+    if (!canClientBeOnAttraction(client, attractionChosen)) {
         char formattedString[100];
         sprintf(formattedString, "\nThe client %d is not permitted to enter the attraction %s", client->id, attractionChosen->name);
         addMsgToQueue(formattedString);
@@ -149,12 +155,17 @@ void chooseAttraction(User *client)
         return;
     }
 
-    // ? Maybe this part of the code is in attraction.c as it doesn't have anything to do with user in itself
-    // TODO semaphore for the client to enter the attraction according to its capacity and current attendance
+    if(user.currentAttraction!=-1){
 
-    // Simulates the client time on the attraction according to the config parameter
+    }
+
+    // Call the function to enter the attraction
+    enterAttraction(client, attractionChosen);
+
+    // Simulate the client's time on the attraction according to the config parameter
     usleep(attractionChosen->duration_ms * 1000);
 }
+
 
 bool canClientBeOnAttraction(User *client, Attraction *attraction)
 {

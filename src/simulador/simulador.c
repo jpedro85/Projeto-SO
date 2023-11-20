@@ -40,21 +40,25 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void startSimulation()
-{   
-    startServer();
+void startSimulation() {        
+    
+    startServer();  
     waitFirstConnection();
-    clock_gettime(CLOCK_REALTIME,&startTime);
+    clock_gettime(CLOCK_REALTIME, &startTime);
 
     int threadError = pthread_create(&simulationStartThread, NULL, createParkClients, NULL);
-    if (threadError == -1)
-    {
+    if (threadError == -1) {
         printFatalError("Could not start the simulation");
     }
+
+    // Initialize and start the attraction simulation thread
+    pthread_t attractionThread;
+    pthread_create(&attractionThread, NULL, simulateAttraction, &attraction);
     
     pthread_join(simulationStartThread, 0);
-    
+    pthread_join(attractionThread, NULL);
 }
+
 
 void stopSimulation()
 {
