@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "attraction.h"
+#include "mutexAddons.h"
 
 pthread_mutex_t attractionLock;
 
@@ -30,21 +31,26 @@ void enterAttraction(User *client, Attraction *attraction) {
     // Use semaphore to control the number of clients in the attraction
     sem_wait(&attraction->attractionSemaphore);
 
-    pthread_mutex_lock(&attraction->attractionLock);
+    lockMutex(&attraction->attractionLock, attraction->name);
+    //pthread_mutex_lock(&attraction->attractionLock);
 
-    // Add client to the current attendance list
-    appendNode(&attraction->currentAttendance, createNode(client));
+    char formattedString[100];
+    sprintf(formattedString, "\nThe client %d entered the attraction %s", client->id, attraction->name);
+    addMsgToQueue(formattedString);
 
-    pthread_mutex_unlock(&attraction->attractionLock);
+    unlockMutex(&attraction->attractionLock, attraction->name)
+    //pthread_mutex_unlock(&attraction->attractionLock);
 }
 
 void leaveAttraction(User *client, Attraction *attraction) {
-    pthread_mutex_lock(&attraction->attractionLock);
+    lockMutex(&attraction->attractionLock, attraction->name);
+    //pthread_mutex_lock(&attraction->attractionLock);
 
     // Remove client from the current attendance list
-    removeNode(&attraction->currentAttendance, client);
+    //removeNode(&attraction->currentAttendance, client);
 
-    pthread_mutex_unlock(&attraction->attractionLock);
+    unlockMutex(&attraction->attractionLock, attraction->name);
+    //pthread_mutex_unlock(&attraction->attractionLock);
 
     // Release the semaphore to indicate a spot is available in the attraction
     sem_post(&attraction->attractionSemaphore);

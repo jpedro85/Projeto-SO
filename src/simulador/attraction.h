@@ -18,9 +18,12 @@ typedef struct {
     bool isOpen;
     bool isRunning;
 
-    LinkedList currentAttendance;
+    sem_t currentAttendance;
     LinkedList waitingLine;
 
 }Attraction;
 
+void initializeAttraction(Attraction *attraction);
+void enterAttraction(User *client, Attraction *attraction);
+void leaveAttraction(User *client, Attraction *attraction);
 #endif

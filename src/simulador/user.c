@@ -154,9 +154,10 @@ void chooseAttraction(User *client) {
 
         return;
     }
-
-    if(user.currentAttraction!=-1){
-
+    // After being on the first attraction
+    if(client->currentAttraction!=-1){
+        leaveAttraction(client, client->currentAttraction);
+        enterAttraction(client, attractionChosen);
     }
 
     // Call the function to enter the attraction
@@ -169,7 +170,7 @@ void chooseAttraction(User *client) {
 
 bool canClientBeOnAttraction(User *client, Attraction *attraction)
 {
-    // TODO checks for the age, if its open or not, if its running
+    // checks for the age, if its open or not, if its running
     if (client->age < attraction->minAge || (attraction->maxAge != 0 && client->age > attraction->maxAge) || !attraction->isOpen)
     {
         return false;

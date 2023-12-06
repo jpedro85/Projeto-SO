@@ -9,6 +9,6 @@
 
 extern Park park;
 extern SimulationConf simulationConf;
-struct timespec startTime;
+extern struct timespec startTime;
 
 #endif
