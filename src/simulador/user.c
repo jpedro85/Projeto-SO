@@ -54,13 +54,15 @@ void createParkClient(int waitTime)
     createRandomClient(newUser);
     pthread_create(&parkClientThread, NULL, simulateUserActions, newUser);
 
-    Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
+    //Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
     EvenInfo_SimulationUserCreated userInfo;
     userInfo.userId = newUser->id;
     userInfo.userAge = newUser->age;
     userInfo.hasVipPass = newUser->vipPass;
-    createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
-    async_addMsgToQueue(eventToJSON_String(userCreated,6));
+    asyncCreateEvent_UserCreated( getCurrentSimulationDate(startTime,simulationConf.dayLength_s), userInfo, 6, addMsgToQueue);
+
+    //createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
+    //async_addMsgToQueue(eventToJSON_String(userCreated,6));
 }
 
 /**

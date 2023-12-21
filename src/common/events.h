@@ -56,6 +56,9 @@ typedef char* (*eventInfoToString)(void* eventInfo);
 char* eventToString(Event event, eventInfoToString func, void* eventInfo);
 char* getEventName(EventType type , int event);
 
+// Function Pointer to handler the result of asyncCreateEvent
+typedef void (*EventMsgHandler)(char*);
+
 typedef enum {
     SIMULATION_STARTED,// general event without info
     SIMULATION_ENDED,// general event without info
@@ -82,6 +85,7 @@ typedef struct {
 
 void createEventInfoFor_SimulationUserCreated(Event* event, EvenInfo_SimulationUserCreated info);
 EvenInfo_SimulationUserCreated getInfoEvent_SimulationUserCreated(Event* event);
+void asyncCreateEvent_UserCreated(Date date,EvenInfo_SimulationUserCreated eventInfo,int eventInfo_estimatedSize,EventMsgHandler handler);
 
 typedef struct {
     char* msg;    
@@ -89,7 +93,6 @@ typedef struct {
 
 void createEventInfoFor_SimulationMessage(Event* event, EvenInfo_SimulationMessage info);
 EvenInfo_SimulationMessage getInfoEvent_SimulationMessage(Event* event);
-
 // // Functions to specify event info for ParkEvent 
 // cJSON* evenInfoToJson_ParkOpen(); 
 // cJSON* evenInfoToJson_ParkClosed(); 

@@ -1,5 +1,7 @@
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
 
 #include "events.h"
 #include "consoleAddons.h"
@@ -88,8 +90,11 @@ char* eventToJSON_String(Event event ,int eventInfo_estimatedSize){
     cJSON_AddNumberToObject(eventJson,"hour",event.date.hour);
     cJSON_AddNumberToObject(eventJson,"minute",event.date.minute);
 
-    if(event.eventInfoJson)
+    if(event.eventInfoJson){
+        // TODO: remove warning after all events are tested
+        printWarning("Has EventInfo");
         cJSON_AddItemToObject(eventJson,"eventInfo",event.eventInfoJson);
+    }
 
     return cJSON_PrintBuffered(eventJson,50 + eventInfo_estimatedSize,0);
 }
@@ -119,6 +124,47 @@ Event createEvent(EventType eventType, int eventEnumValue, Date eventDate){
     return event;
 }
 
+
+typedef struct {
+    Event* event;
+    void* eventInfo;
+}CreateEventInfo_Params;
+
+typedef void(*CreateEventInfo)(CreateEventInfo_Params);
+//typedef void(*EventMsgHandler)(char*);
+typedef struct {
+
+    EventType eventType;
+    int eventEnumValue;
+    Date eventDate;
+    void* eventInfo;
+    CreateEventInfo function_CreateEventInfo;
+    EventMsgHandler function_EventMsgHandler;
+    int EstimatedSize;
+
+}CreateEvent_AsyncParam;
+
+void* asyncCreateEvent( void* createEvent_AsyncParam){
+
+    CreateEvent_AsyncParam* param_creatEvent = (CreateEvent_AsyncParam*)createEvent_AsyncParam;
+    Event event = createEvent( param_creatEvent->eventType, param_creatEvent->eventEnumValue, param_creatEvent->eventDate );
+    
+    if(param_creatEvent->eventInfo){
+
+        CreateEventInfo_Params param;
+        param.event = &event;
+        param.eventInfo = param_creatEvent->eventInfo;
+
+        param_creatEvent->function_CreateEventInfo(param);
+        free(param.eventInfo);
+        // TODO: remove warning after all events are tested
+        printWarning("Freeing EventInfo");
+    }
+
+    param_creatEvent->function_EventMsgHandler( eventToJSON_String( event, param_creatEvent->EstimatedSize) );
+
+    free(param_creatEvent);
+}
 
 /**
  * The function creates event information for a simulation error.
@@ -172,6 +218,9 @@ void createEventInfoFor_SimulationUserCreated(Event* event, EvenInfo_SimulationU
     cJSON_AddNumberToObject(event->eventInfoJson,"age",info.userAge);
     cJSON_AddNumberToObject(event->eventInfoJson,"vipPass",info.hasVipPass);
 }
+void general_createEventInfoFor_SimulationUserCreated(CreateEventInfo_Params param){
+    createEventInfoFor_SimulationUserCreated(param.event, *((EvenInfo_SimulationUserCreated*)(param.eventInfo)) );
+}
 
 /**
  * The function `getInfoEvent_SimulationUserCreated` extracts information from a JSON object and
@@ -197,6 +246,31 @@ EvenInfo_SimulationUserCreated getInfoEvent_SimulationUserCreated(Event* event){
         printFatalError("Wrong event type, eventInfoJson type is not EvenInfo_SimulationUserCreated.");
     
     return eventInfo;
+}
+
+void asyncCreateEvent_UserCreated(Date date,EvenInfo_SimulationUserCreated eventInfo,int eventInfo_estimatedSize,EventMsgHandler handler){
+
+    CreateEvent_AsyncParam* parameters = (CreateEvent_AsyncParam*)malloc(sizeof(CreateEvent_AsyncParam));
+    parameters->eventType = SIMULATOR_EVENT;
+    parameters->eventEnumValue = SIMULATION_USER_CREATED;
+    parameters->eventDate = date;
+    EvenInfo_SimulationUserCreated* a = (EvenInfo_SimulationUserCreated*)malloc(sizeof(EvenInfo_SimulationUserCreated));
+    *a = eventInfo;
+    parameters->eventInfo = a;
+    parameters->function_CreateEventInfo = general_createEventInfoFor_SimulationUserCreated;
+    parameters->function_EventMsgHandler = handler;
+    parameters->EstimatedSize = eventInfo_estimatedSize;
+
+    pthread_t thread;
+
+    pthread_attr_t detachedThread;
+    pthread_attr_init(&detachedThread);
+    pthread_attr_setdetachstate(&detachedThread,PTHREAD_CREATE_DETACHED);
+
+    if( pthread_create( &thread, &detachedThread, asyncCreateEvent , parameters) )
+        printFatalError("Can not create thread for async_addMsgToQueue.");
+
+    pthread_attr_destroy(&detachedThread);
 }
 
 /**
