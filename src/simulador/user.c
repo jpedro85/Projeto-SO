@@ -60,7 +60,7 @@ void createParkClient(int waitTime)
     userInfo.userAge = newUser->age;
     userInfo.hasVipPass = newUser->vipPass;
     createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
-    addMsgToQueue(eventToJSON_String(userCreated,6));
+    async_addMsgToQueue(eventToJSON_String(userCreated,6));
 }
 
 /**

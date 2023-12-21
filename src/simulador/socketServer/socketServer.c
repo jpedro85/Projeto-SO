@@ -490,3 +490,29 @@ void addMsgToQueue(char* msg){
     unlockMutex(&sendMsgQueue_mutex,"sendMsgQueue_mutex");
 
 }
+
+//Act as an intermediate function to adapt the argument for addMsgToQueue
+void* addMsgToQueueVoidParam(void* msg){
+    addMsgToQueue( (char*)msg );
+}
+
+/**
+ * Add a message to a queue asynchronously.
+ * 
+ * @param msg The parameter "msg" is a pointer to a character that represents the
+ * message to be added to the queue.
+ */
+void async_addMsgToQueue(char* msg){
+
+    //Prevents the calling thread to block on sendMsgQueue_mutex
+    pthread_t thread;
+
+    pthread_attr_t detachedThread;
+    pthread_attr_init(&detachedThread);
+    pthread_attr_setdetachstate(&detachedThread,PTHREAD_CREATE_DETACHED);
+
+    if( pthread_create( &thread, &detachedThread, addMsgToQueueVoidParam , msg) )
+        printFatalError("Can not create thread for async_addMsgToQueue.");
+
+    pthread_attr_destroy(&detachedThread);
+}
