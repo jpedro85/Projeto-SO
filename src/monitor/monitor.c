@@ -9,7 +9,7 @@
 #include "../common/consoleAddons.h"
 #include "socketClient.h"
 #include "../common/socketUtils/socketComms.h"
-
+#include "../common/string_utils.h"
 extern int serverSocket;
 
 int main(int argc , char *argv[] ){
@@ -45,7 +45,14 @@ int main(int argc , char *argv[] ){
             else
                 printError(strerror(errno));
         else{
-            printSuccess(str);
+            if(strContain_Substring(str,"{") > 0 ){
+                printWarning("Reading Event");
+                Event event =  stringJsonTo_Event(str);
+                char* str = eventToString(event,extractEvent_SimulationUserCreated);
+                printf("%s \n",str);
+                free(str);
+            }else
+                printSuccess(str);
         }
     }
 

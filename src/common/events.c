@@ -6,6 +6,7 @@
 #include "events.h"
 #include "consoleAddons.h"
 #include "file.h"
+#include "string_utils.h"
 
 char* parkEventNames[] = {
     "Park Opened",
@@ -55,11 +56,11 @@ Event stringJsonTo_Event(char* stringJson){
     if(!eventJson)
         error++;
     
-    error += loadItemNumber(eventJson,"eventType",&(event.eventType));
-    error += loadItemNumber(eventJson,"event",&(event.event));
-    error += loadItemNumber(eventJson,"day",&(event.date.day));
-    error += loadItemNumber(eventJson,"hour",&(event.date.hour));
-    error += loadItemNumber(eventJson,"minute",&(event.date.minute));
+    error += loadItemNumber2(eventJson,"eventType",&(event.eventType));
+    error += loadItemNumber2(eventJson,"event",&(event.event));
+    error += loadItemNumber2(eventJson,"day",&(event.date.day));
+    error += loadItemNumber2(eventJson,"hour",&(event.date.hour));
+    error += loadItemNumber2(eventJson,"minute",&(event.date.minute));
     event.eventInfoJson = cJSON_GetObjectItem(eventJson,"eventInfo");
 
     if(error > 0)
@@ -144,6 +145,49 @@ typedef struct {
 
 }CreateEvent_AsyncParam;
 
+/**
+ * The function creates and initializes a CreateEvent_AsyncParam struct with the given parameters.
+ * 
+ * @param eventType The type of event being created. It could be an enum value or a string representing
+ * the event type.
+ * @param eventEnumValue eventEnumValue 
+ * @param date The "date" parameter is of type "Date" and represents the date of the event.
+ * @param function_CreateEventInfo A function pointer that points to a function that takes one CreateEventInfo_Params.
+ * @param eventInfo_estimatedSize The eventInfo_estimatedSize parameter is an integer that represents
+ * the estimated size of the event information. 
+ * @param function_EventMsgHandler function_EventMsgHandler is a function pointer that points to a
+ * function that handles eventToString message.
+ * 
+ * @return a pointer to a structure of type CreateEvent_AsyncParam.
+ */
+CreateEvent_AsyncParam* create_CreateEvent_AsyncParam(EventType eventType,int eventEnumValue, Date date, CreateEventInfo function_CreateEventInfo, int eventInfo_estimatedSize , EventMsgHandler function_EventMsgHandler ){
+
+    CreateEvent_AsyncParam* parameters = (CreateEvent_AsyncParam*)malloc(sizeof(CreateEvent_AsyncParam));
+    parameters->eventType = eventType;
+    parameters->eventEnumValue = eventEnumValue;
+    parameters->eventDate = date;
+    parameters->function_CreateEventInfo = function_CreateEventInfo;
+    parameters->function_EventMsgHandler = function_EventMsgHandler;
+    parameters->EstimatedSize = eventInfo_estimatedSize;
+
+    return parameters;
+}
+
+typedef void* (*ThreadFunction) (void*);
+void createDetachThread(ThreadFunction func , CreateEvent_AsyncParam* parameters){
+
+    pthread_t thread;
+    pthread_attr_t detachedThread;
+    pthread_attr_init(&detachedThread);
+    pthread_attr_setdetachstate(&detachedThread,PTHREAD_CREATE_DETACHED);
+
+    if( pthread_create( &thread, &detachedThread, func , parameters) ){
+        printFatalError("Can not create thread for async_CreateEvent.");
+    }
+
+    pthread_attr_destroy(&detachedThread);
+}
+
 void* asyncCreateEvent( void* createEvent_AsyncParam){
 
     CreateEvent_AsyncParam* param_creatEvent = (CreateEvent_AsyncParam*)createEvent_AsyncParam;
@@ -179,6 +223,26 @@ void createEventInfoFor_SimulationError(Event* event, EvenInfo_SimulationError i
     cJSON_AddStringToObject(event->eventInfoJson,"errorMsg",info.errorMsg);
     cJSON_AddNumberToObject(event->eventInfoJson,"errnoVar",info.errorValue);
 }
+void general_createEventInfoFor_SimulationError(CreateEventInfo_Params params){
+    createEventInfoFor_SimulationError(params.event, *((EvenInfo_SimulationError*)(params.eventInfo)));
+}
+
+void asyncCreateEvent_SimulationError(Date date,EvenInfo_SimulationError eventInfo,int eventInfo_estimatedSize,EventMsgHandler handler){
+    
+    CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                            SIMULATOR_EVENT,
+                                            SIMULATION_ERROR,
+                                            date,
+                                            general_createEventInfoFor_SimulationError,
+                                            eventInfo_estimatedSize,
+                                            handler
+                                         );
+
+    EvenInfo_SimulationError* a = (EvenInfo_SimulationError*)malloc(sizeof(EvenInfo_SimulationError));
+    *a = eventInfo;
+    parameters->eventInfo = a;
+    createDetachThread(asyncCreateEvent,parameters);
+}
 
 /**
  * The function `getInfoEvent_SimulationError` extracts information from a JSON object of 
@@ -194,7 +258,7 @@ EvenInfo_SimulationError getInfoEvent_SimulationError(Event* event){
         printFatalError("Wrong event type not SimulationError, eventInfoJson is not defined.");
 
     EvenInfo_SimulationError eventInfo;
-    int error = loadItemNumber(event->eventInfoJson,"errnoVar",&eventInfo.errorValue);
+    int error = loadItemNumber2(event->eventInfoJson,"errnoVar",&eventInfo.errorValue);
     error += loadItemString(event->eventInfoJson,"errnoVar",&eventInfo.errorMsg);
 
     if (error > 0 )
@@ -234,13 +298,13 @@ void general_createEventInfoFor_SimulationUserCreated(CreateEventInfo_Params par
  */
 EvenInfo_SimulationUserCreated getInfoEvent_SimulationUserCreated(Event* event){
 
-     if(!event->eventInfoJson)
+    if(!event->eventInfoJson)
         printFatalError("Wrong event type not SimulationUserCreated, eventInfoJson is not defined.");
 
     EvenInfo_SimulationUserCreated eventInfo;
-    int error = loadItemNumber(event->eventInfoJson,"id",&eventInfo.userId);
-    error += loadItemNumber(event->eventInfoJson,"age",&eventInfo.userAge);
-    error += loadItemNumber(event->eventInfoJson,"vipPass",&eventInfo.hasVipPass);
+    int error = loadItemNumber2(event->eventInfoJson,"id",&eventInfo.userId);
+    error += loadItemNumber2(event->eventInfoJson,"age",&eventInfo.userAge);
+    error += loadItemNumber2(event->eventInfoJson,"vipPass",&eventInfo.hasVipPass);
 
     if (error > 0 )
         printFatalError("Wrong event type, eventInfoJson type is not EvenInfo_SimulationUserCreated.");
@@ -248,29 +312,38 @@ EvenInfo_SimulationUserCreated getInfoEvent_SimulationUserCreated(Event* event){
     return eventInfo;
 }
 
+char* extractEvent_SimulationUserCreated(Event* event){
+
+    EvenInfo_SimulationUserCreated eventInfo = getInfoEvent_SimulationUserCreated(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"Id:%d Age:%d Vip:%d",eventInfo.userId,eventInfo.userAge,eventInfo.hasVipPass); 
+//    printf("%s",eventInfoString);
+    return eventInfoString;
+}
+
+/**
+ * The function asyncCreateEvent_UserCreated creates an event asynchronous
+ * @param date The date parameter is of type Date and represents the date of the event being created.
+ * @param eventInfo The eventInfo parameter is of type EvenInfo_SimulationUserCreated.
+ * @param eventInfo_estimatedSize The parameter `eventInfo_estimatedSize` is the estimated size of the
+ * `eventInfo` object in bytes.
+ * @param handler The `handler`is a callback function that will be called when the event is created asynchronously.
+ */
 void asyncCreateEvent_UserCreated(Date date,EvenInfo_SimulationUserCreated eventInfo,int eventInfo_estimatedSize,EventMsgHandler handler){
 
-    CreateEvent_AsyncParam* parameters = (CreateEvent_AsyncParam*)malloc(sizeof(CreateEvent_AsyncParam));
-    parameters->eventType = SIMULATOR_EVENT;
-    parameters->eventEnumValue = SIMULATION_USER_CREATED;
-    parameters->eventDate = date;
+    CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                            SIMULATOR_EVENT,
+                                            SIMULATION_USER_CREATED,
+                                            date,
+                                            general_createEventInfoFor_SimulationUserCreated,
+                                            eventInfo_estimatedSize,
+                                            handler
+                                         );
+
     EvenInfo_SimulationUserCreated* a = (EvenInfo_SimulationUserCreated*)malloc(sizeof(EvenInfo_SimulationUserCreated));
     *a = eventInfo;
     parameters->eventInfo = a;
-    parameters->function_CreateEventInfo = general_createEventInfoFor_SimulationUserCreated;
-    parameters->function_EventMsgHandler = handler;
-    parameters->EstimatedSize = eventInfo_estimatedSize;
-
-    pthread_t thread;
-
-    pthread_attr_t detachedThread;
-    pthread_attr_init(&detachedThread);
-    pthread_attr_setdetachstate(&detachedThread,PTHREAD_CREATE_DETACHED);
-
-    if( pthread_create( &thread, &detachedThread, asyncCreateEvent , parameters) )
-        printFatalError("Can not create thread for async_addMsgToQueue.");
-
-    pthread_attr_destroy(&detachedThread);
+    createDetachThread(asyncCreateEvent,parameters);
 }
 
 /**
@@ -286,7 +359,34 @@ void createEventInfoFor_SimulationMessage(Event* event, EvenInfo_SimulationMessa
     event->eventInfoJson = cJSON_CreateObject();
     cJSON_AddStringToObject(event->eventInfoJson,"msg",info.msg);
 }
+void general_createEventInfoFor_SimulationMessage(CreateEventInfo_Params param){
+    createEventInfoFor_SimulationMessage(param.event, *((EvenInfo_SimulationMessage*)(param.eventInfo)) );
+}
 
+/**
+ * The function asyncCreateEvent_UserCreated creates an event asynchronous
+ * @param date The date parameter is of type Date and represents the date of the event being created.
+ * @param eventInfo The eventInfo parameter is of type EvenInfo_SimulationMessage.
+ * @param eventInfo_estimatedSize The parameter `eventInfo_estimatedSize` is the estimated size of the
+ * `eventInfo` object in bytes.
+ * @param handler The `handler`is a callback function that will be called when the event is created asynchronously.
+ */
+void asyncCreateEvent_SimulationMessage(Date date, EvenInfo_SimulationMessage eventInfo,int eventInfo_estimatedSize, EventMsgHandler handler){
+
+    CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                            SIMULATOR_EVENT,
+                                            SIMULATION_MESSAGE,
+                                            date,
+                                            general_createEventInfoFor_SimulationMessage,
+                                            eventInfo_estimatedSize,
+                                            handler
+                                         );
+
+    EvenInfo_SimulationMessage* a = (EvenInfo_SimulationMessage*)malloc(sizeof(EvenInfo_SimulationMessage));
+    *a = eventInfo;
+    parameters->eventInfo = a;
+    createDetachThread(asyncCreateEvent,parameters);
+}
 /**
  * The function `getInfoEvent_SimulationMessage` extracts information from an event object of type
  * `SimulationMessage` and returns it as an `EvenInfo_SimulationMessage` object.
@@ -316,23 +416,27 @@ EvenInfo_SimulationMessage getInfoEvent_SimulationMessage(Event* event){
  * @param event The event structure that contains information about the event type, event, and date.
  * @param func The parameter "func" is a function pointer that points to a function which converts the
  * eventInfo into a string representation. This function takes in the eventInfo as a parameter and
- * returns a char* (string).
+ * returns a char* (string). Can Be NULL if Event has no eventInfoJSON
  * @param eventInfo The eventInfo parameter is a void pointer that can be used to pass additional
  * information about the event.
  * 
  * @return a string representation of an event.
  */
-char* eventToString(Event event, eventInfoToString func, void* eventInfo){
+char* eventToString(Event event, eventInfoToString func){
 
     //asprintf(&strEvent,"event:%s ",getEventName(event.eventType,event.event));
     char* strEvent = "event:";
-    strcat(strEvent,getEventName(event.eventType,event.event));
-    strcat(strEvent,dateToString(event.date));
+    char* eventName = getEventName(event.eventType,event.event);
+    char* date = dateToString(event.date);
+    char* result = "";
 
-    if(func && eventInfo)
-        strcat(strEvent,func(eventInfo));
+    if(func && event.eventInfoJson){
+       // char* funcResult = func(&event);
+        asprintf(&result, "%s %s %s %s.",strEvent,eventName,date, func(&event));
+    }else
+        asprintf(&result, "%s %s %s.",strEvent,eventName,date);
 
-    return strEvent;
+    return result;
 }
 
 /**

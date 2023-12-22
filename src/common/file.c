@@ -89,6 +89,29 @@ char *readJSON(char *fileName)
     return buffer;
 }
 
+int loadItemNumber2(cJSON* object,char* name,int* number){
+
+    cJSON* json_item = cJSON_GetObjectItem(object,name);
+    if(json_item){
+
+        int value = cJSON_GetNumberValue(json_item);
+        if(value < 0){
+            char* strError = "Invalid value type of ";
+            strcat(strError,name);
+            printError(strError);
+            
+        } else {
+            *number = value;
+            return 0;
+        }
+
+    } else {
+        printf("\033[1;31mCould not load value of %s \033[1;0m\n",name);
+    }
+
+    return 1;
+}
+
 int loadItemNumber(cJSON* object,char* name,int* number){
 
     cJSON* json_item = cJSON_GetObjectItem(object,name);
@@ -103,6 +126,29 @@ int loadItemNumber(cJSON* object,char* name,int* number){
         } else {
             *number = value;
             printf("\033[1;37mLoaded %d for %s\033[1;0m\n",value,name);
+            return 0;
+        }
+
+    } else {
+        printf("\033[1;31mCould not load value of %s \033[1;0m\n",name);
+    }
+
+    return 1;
+}
+
+int loadItemString2(cJSON* object,char* name,char** string){
+
+    cJSON* json_item = cJSON_GetObjectItem(object,name);
+    if(json_item){
+
+        char* value = cJSON_GetStringValue(json_item);
+        if(value == "" || value == NULL){
+            char* strError = "Invalid value type of ";
+            strcat(strError,name);
+            printError(strError);
+            
+        } else {
+            *string = value;
             return 0;
         }
 

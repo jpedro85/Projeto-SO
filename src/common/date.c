@@ -53,6 +53,6 @@ Date getCurrentSimulationDate(struct timespec beginTime, int dayLength_s ){
 char* dateToString(Date date){
 
     char* strDate;
-    asprintf(&strDate,"d:%d h:%d m:%d ",date.day,date.hour,date.minute);
+    asprintf(&strDate,"d:%d h:%d m:%d",date.day,date.hour,date.minute);
     return strDate;
 }
