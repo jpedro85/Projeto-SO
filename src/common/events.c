@@ -338,7 +338,7 @@ void asyncCreateEvent_UserCreated(Date date,EvenInfo_SimulationUserCreated event
                                             general_createEventInfoFor_SimulationUserCreated,
                                             eventInfo_estimatedSize,
                                             handler
-                                         );
+                                        );
 
     EvenInfo_SimulationUserCreated* a = (EvenInfo_SimulationUserCreated*)malloc(sizeof(EvenInfo_SimulationUserCreated));
     *a = eventInfo;
@@ -380,7 +380,7 @@ void asyncCreateEvent_SimulationMessage(Date date, EvenInfo_SimulationMessage ev
                                             general_createEventInfoFor_SimulationMessage,
                                             eventInfo_estimatedSize,
                                             handler
-                                         );
+                                        );
 
     EvenInfo_SimulationMessage* a = (EvenInfo_SimulationMessage*)malloc(sizeof(EvenInfo_SimulationMessage));
     *a = eventInfo;
@@ -390,14 +390,14 @@ void asyncCreateEvent_SimulationMessage(Date date, EvenInfo_SimulationMessage ev
 /**
  * The function `getInfoEvent_SimulationMessage` extracts information from an event object of type
  * `SimulationMessage` and returns it as an `EvenInfo_SimulationMessage` object.
- * 
+ *
  * @param event The parameter "event" is a pointer to an Event object.
- * 
+ *
  * @return an object of type EvenInfo_SimulationMessage.
  */
 EvenInfo_SimulationMessage getInfoEvent_SimulationMessage(Event* event){
 
-     if(!event->eventInfoJson)
+    if(!event->eventInfoJson)
         printFatalError("Wrong event type not SimulationMessage, eventInfoJson is not defined.");
 
     EvenInfo_SimulationMessage eventInfo;
@@ -409,6 +409,54 @@ EvenInfo_SimulationMessage getInfoEvent_SimulationMessage(Event* event){
     return eventInfo;
 }
 
+/**
+ * The function creates event information for an attraction event by adding the attraction name to the
+ * event's JSON object.
+ * 
+ * @param event A pointer to an Event struct, which contains information about an event.
+ * @param info The "info" parameter is of type EventInfo_AttractionEvent, which is a struct or class
+ * that contains information about an attraction event. It likely has a member variable called
+ * "attractionName" which is a string representing the name of the attraction.
+ */
+void createEventInfoFor_AttractionEvent(Event *event, EventInfo_AttractionEvent info)
+{
+    event->eventInfoJson = cJSON_CreateObject();
+    cJSON_AddStringToObject(event->eventInfoJson,"attractionName",info.attractionName);
+}
+void general_createEventInfoFor_AttractionEvent(CreateEventInfo_Params param){
+    createEventInfoFor_AttractionEvent(param.event, *((EventInfo_AttractionEvent*)(param.eventInfo)) );
+}
+
+EventInfo_AttractionEvent getInfoEvent_AttractionEvent(Event* event){
+    
+    if (!event->eventInfoJson)
+        printFatalError("Wrong event type not AttractionEvent, eventInfoJson is not defined.");
+    
+    EventInfo_AttractionEvent eventInfo;
+    int error = loadItemString(event->eventInfoJson,"attractionName", &eventInfo.attractionName);
+
+    if (error >0)
+        printFatalError("Wrong event type, eventInfoJson type is not EventInfo_AttractionEvent.");
+    
+    return eventInfo;
+}
+
+void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent eventInfo, int eventInfo_estimatedSize, EventMsgHandler handler){
+    
+    CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                            SIMULATOR_EVENT,
+                                            SIMULATION_MESSAGE,
+                                            date,
+                                            general_createEventInfoFor_AttractionEvent,
+                                            eventInfo_estimatedSize,
+                                            handler
+                                        );
+
+    EventInfo_AttractionEvent* a = (EventInfo_AttractionEvent*)malloc(sizeof(EventInfo_AttractionEvent));
+    *a = eventInfo;
+    parameters->eventInfo = a;
+    createDetachThread(asyncCreateEvent,parameters);
+}
 
 /**
  * The function "eventToString" takes an Event struct.
@@ -468,3 +516,4 @@ char* getEventName(EventType type , int event){
     }
 
 }
+

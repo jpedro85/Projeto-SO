@@ -23,6 +23,8 @@ typedef enum {
     PARK_CLOSED,
 }ParkEvent;
 extern char* parkEventNames[];
+
+// TODO: implement all
 typedef enum {
     ATTRACTION_OPEN,
     ATTRACTION_CLOSED,
@@ -31,6 +33,7 @@ typedef enum {
 }AttractionEvent;
 extern char* attractionEventNames[];
 
+// TODO: Implement all this events
 typedef enum {
     ENTERING_PARK,
     LEAVING_PARK,
@@ -96,23 +99,13 @@ typedef struct {
 void createEventInfoFor_SimulationMessage(Event* event, EvenInfo_SimulationMessage info);
 EvenInfo_SimulationMessage getInfoEvent_SimulationMessage(Event* event);
 void asyncCreateEvent_SimulationMessage(Date date, EvenInfo_SimulationMessage eventInfo,int eventInfo_estimatedSize, EventMsgHandler handler);
-// // Functions to specify event info for ParkEvent 
-// cJSON* evenInfoToJson_ParkOpen(); 
-// cJSON* evenInfoToJson_ParkClosed(); 
 
-// // Functions to specify event info for AttractionEvent
-// cJSON* evenInfoToJson_AttractionOpen();  
-// cJSON* evenInfoToJson_AttractionClosed();
-// cJSON* evenInfoToJson_AttractionRideStarted();  
-// cJSON* evenInfoToJson_AttractionRideEnded();
+typedef struct {
+    char* attractionName;
+} EventInfo_AttractionEvent;
 
-// // Functions to specify event info for AttractionEvent
-// cJSON* evenInfoToJson_UserEnteringPark();  
-// cJSON* evenInfoToJson_UserLeavingPark();
-// cJSON* evenInfoToJson_UserEnteringWaitingLine(/*bool vipAcess*/);  
-// cJSON* evenInfoToJson_UserLeavingWaitingLine();
-// cJSON* evenInfoToJson_UserEnteringRide();  
-// cJSON* evenInfoToJson_UserLeavingRide();
-// cJSON* evenInfoToJson_UserEnteringAttraction();  
-// cJSON* evenInfoToJson_UserLeavingAttraction();
+void createEventInfoFor_AttractionEvent(Event* event, EventInfo_AttractionEvent info);
+EventInfo_AttractionEvent getInfoEvent_AttractionEvent(Event* event);
+void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent eventInfo,int eventInfo_estimatedSize, EventMsgHandler handler);
+
 #endif

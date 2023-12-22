@@ -12,6 +12,7 @@
 #include "globals.h"
 #include "user.h"
 #include "park.h"
+#include "../common/events.h"
 
 pthread_t simulationStartThread;
 
@@ -45,6 +46,10 @@ void startSimulation()
     startServer();
     waitFirstConnection();
     clock_gettime(CLOCK_REALTIME,&startTime);
+
+    // EventInfo_AttractionEvent eventInfo;
+    // eventInfo.attractionName = "Rio Lento";
+    // asyncCreateEvent_AttractionEvent( getCurrentSimulationDate(startTime,simulationConf.dayLength_s), eventInfo, sizeof(eventInfo), addMsgToQueue);
 
     int threadError = pthread_create(&simulationStartThread, NULL, createParkClients, NULL);
     if (threadError == -1)
