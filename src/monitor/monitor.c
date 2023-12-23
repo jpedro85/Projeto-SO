@@ -52,7 +52,7 @@ int main(int argc , char *argv[] ){
                 free(str);
             }else{
                 printSuccess(str);
-                free(str);
+                // free(str);
             }
         }
     }
