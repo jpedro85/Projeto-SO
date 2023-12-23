@@ -71,9 +71,12 @@ char *recvMsg(int recvFrom_fd, int bufferSize, int maxResizes)
     }
 
     char readdenChar;
-    int charsReadden, totalCharsReadden, numberOffResizes = 0;
+    int charsReadden = 0;
+    int numberOffResizes = 0;
+    // ! Removed to limit the amount of memory used to count
+    // int totalCharsReadden = 0;
     int totalBufferSize = bufferSize;
-    __uint32_t totalChars = 0;
+    __uint16_t totalChars = 0;
 
     char *strReadden = malloc(sizeof(char) * bufferSize);
     if (strReadden == NULL)
@@ -106,13 +109,13 @@ char *recvMsg(int recvFrom_fd, int bufferSize, int maxResizes)
         }
 
         *bufferPointer = readdenChar;
-        totalCharsReadden++;
+        // totalCharsReadden++;
         totalChars++;
         // if the buffer is full
-        if ((totalCharsReadden % bufferSize) == 0)
+        if ((totalChars % bufferSize) == 0)
         {
 
-            totalBufferSize = totalCharsReadden + bufferSize;
+            totalBufferSize = totalChars + bufferSize;
             strBufferResize = realloc(strReadden, sizeof(char) * (totalBufferSize));
             numberOffResizes++;
 
@@ -131,15 +134,14 @@ char *recvMsg(int recvFrom_fd, int bufferSize, int maxResizes)
             }
 
             strReadden = strBufferResize;
-            bufferPointer = strReadden + totalCharsReadden;
+            bufferPointer = strReadden + totalChars;
         }
         else
             bufferPointer++;
     } while (readdenChar != '\n' && readdenChar != '\0' /*&& numberOffResizes <= maxBufferResizes */);
-    // assert(totalCharsReadden >= 0 && totalCharsReadden <= (bufferSize * maxResizes));
-    printf("\033[1;32mTotalChars(uint32):\033[1;31m%d\033[1;32m TotalCharReadden(int):\033[1;31m%d\033[1;0m\n", totalChars, totalCharsReadden);
-    // return "Tests";
-    // char *str = malloc(totalChars + 1); // Allocate memory
+    // Tests whether the totalChars are within the decided limits
+    assert(totalChars >= 0 && totalChars <= (bufferSize * maxResizes));
+
     // char *str = (char *)malloc(sizeof(char) * (totalCharsReadden + 1));
     char *str = (char *)malloc(sizeof(char) * (totalChars + 1));
     if (str == NULL)

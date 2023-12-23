@@ -143,10 +143,11 @@ void chooseAttraction(User *client)
     // If not it leaves the chooses another action
     if (!canClientBeOnAttraction(client, attractionChosen))
     {
-        EventInfo_UserEvent eventInfo;
-        eventInfo.clientID = client->id;
-        eventInfo.attractionName = attractionChosen->name;
-        asyncCreateEvent_UserEvent(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_DENIED, sizeof(eventInfo), addMsgToQueue);
+        // TODO: Uncomment
+        // EventInfo_UserEvent eventInfo;
+        // eventInfo.clientID = client->id;
+        // eventInfo.attractionName = attractionChosen->name;
+        // asyncCreateEvent_UserEvent(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_DENIED, sizeof(eventInfo), addMsgToQueue);
         
         return;
     }

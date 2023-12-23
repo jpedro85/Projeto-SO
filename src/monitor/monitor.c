@@ -47,7 +47,7 @@ int main(int argc , char *argv[] ){
             if(strContain_Substring(str,"{") > 0 ){
                 printWarning("Reading Event");
                 Event event =  stringJsonTo_Event(str);
-                char* str = eventToString(event,extractEvent_UserEventPark);
+                char* str = eventToString(event,extractEvent_SimulationUserCreated);
                 printf("%s \n",str);
                 free(str);
             }else{
