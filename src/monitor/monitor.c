@@ -37,7 +37,6 @@ int main(int argc , char *argv[] ){
     int error;
     while(1){
         
-
         str = recvMsg(serverSocket,512,4);
         if(str == NULL)
             if(errno == CONNECTION_CLOSED)
@@ -48,11 +47,13 @@ int main(int argc , char *argv[] ){
             if(strContain_Substring(str,"{") > 0 ){
                 printWarning("Reading Event");
                 Event event =  stringJsonTo_Event(str);
-                char* str = eventToString(event,extractEvent_SimulationUserCreated);
+                char* str = eventToString(event,extractEvent_UserEventPark);
                 printf("%s \n",str);
                 free(str);
-            }else
+            }else{
                 printSuccess(str);
+                free(str);
+            }
         }
     }
 

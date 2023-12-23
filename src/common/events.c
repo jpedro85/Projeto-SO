@@ -236,11 +236,11 @@ void asyncCreateEvent_SimulationError(Date date,EvenInfo_SimulationError eventIn
                                             general_createEventInfoFor_SimulationError,
                                             eventInfo_estimatedSize,
                                             handler
-                                         );
+                                        );
 
-    EvenInfo_SimulationError* a = (EvenInfo_SimulationError*)malloc(sizeof(EvenInfo_SimulationError));
-    *a = eventInfo;
-    parameters->eventInfo = a;
+    EvenInfo_SimulationError* newEventInfo = (EvenInfo_SimulationError*)malloc(sizeof(EvenInfo_SimulationError));
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
     createDetachThread(asyncCreateEvent,parameters);
 }
 
@@ -259,7 +259,7 @@ EvenInfo_SimulationError getInfoEvent_SimulationError(Event* event){
 
     EvenInfo_SimulationError eventInfo;
     int error = loadItemNumber2(event->eventInfoJson,"errnoVar",&eventInfo.errorValue);
-    error += loadItemString(event->eventInfoJson,"errnoVar",&eventInfo.errorMsg);
+    error += loadItemString2(event->eventInfoJson,"errnoVar",&eventInfo.errorMsg);
 
     if (error > 0 )
         printFatalError("Wrong event type, eventInfoJson type is not EvenInfo_SimulationError.");
@@ -340,9 +340,9 @@ void asyncCreateEvent_UserCreated(Date date,EvenInfo_SimulationUserCreated event
                                             handler
                                         );
 
-    EvenInfo_SimulationUserCreated* a = (EvenInfo_SimulationUserCreated*)malloc(sizeof(EvenInfo_SimulationUserCreated));
-    *a = eventInfo;
-    parameters->eventInfo = a;
+    EvenInfo_SimulationUserCreated* newEventInfo = (EvenInfo_SimulationUserCreated*)malloc(sizeof(EvenInfo_SimulationUserCreated));
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
     createDetachThread(asyncCreateEvent,parameters);
 }
 
@@ -382,9 +382,9 @@ void asyncCreateEvent_SimulationMessage(Date date, EvenInfo_SimulationMessage ev
                                             handler
                                         );
 
-    EvenInfo_SimulationMessage* a = (EvenInfo_SimulationMessage*)malloc(sizeof(EvenInfo_SimulationMessage));
-    *a = eventInfo;
-    parameters->eventInfo = a;
+    EvenInfo_SimulationMessage* newEventInfo = (EvenInfo_SimulationMessage*)malloc(sizeof(EvenInfo_SimulationMessage));
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
     createDetachThread(asyncCreateEvent,parameters);
 }
 /**
@@ -401,12 +401,21 @@ EvenInfo_SimulationMessage getInfoEvent_SimulationMessage(Event* event){
         printFatalError("Wrong event type not SimulationMessage, eventInfoJson is not defined.");
 
     EvenInfo_SimulationMessage eventInfo;
-    int error = loadItemString(event->eventInfoJson,"msg",&eventInfo.msg);
+    int error = loadItemString2(event->eventInfoJson,"msg",&eventInfo.msg);
 
     if (error > 0 )
         printFatalError("Wrong event type, eventInfoJson type is not EvenInfo_SimulationMessage.");
     
     return eventInfo;
+}
+
+char* extractEvent_SimulationMessage(Event* event){
+
+    EvenInfo_SimulationMessage eventInfo = getInfoEvent_SimulationMessage(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"%s",eventInfo.msg); 
+//    printf("%s",eventInfoString);
+    return eventInfoString;
 }
 
 /**
@@ -441,21 +450,197 @@ EventInfo_AttractionEvent getInfoEvent_AttractionEvent(Event* event){
     return eventInfo;
 }
 
-void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent eventInfo, int eventInfo_estimatedSize, EventMsgHandler handler){
+void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent eventInfo, int attractionEvent, int eventInfo_estimatedSize, EventMsgHandler handler){
     
     CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
-                                            SIMULATOR_EVENT,
-                                            SIMULATION_MESSAGE,
+                                            ATTRACTION_EVENT,
+                                            attractionEvent,
                                             date,
                                             general_createEventInfoFor_AttractionEvent,
                                             eventInfo_estimatedSize,
                                             handler
                                         );
 
-    EventInfo_AttractionEvent* a = (EventInfo_AttractionEvent*)malloc(sizeof(EventInfo_AttractionEvent));
-    *a = eventInfo;
-    parameters->eventInfo = a;
+    EventInfo_AttractionEvent* newEventInfo = (EventInfo_AttractionEvent*)malloc(sizeof(EventInfo_AttractionEvent));
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
     createDetachThread(asyncCreateEvent,parameters);
+}
+
+char* extractEvent_AttractionEvent(Event* event){
+    EventInfo_AttractionEvent eventInfo = getInfoEvent_AttractionEvent(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"%s",eventInfo.attractionName); 
+//    printf("%s",eventInfoString);
+    return eventInfoString;
+}
+
+void createEventInfoFor_UserEvent(Event *event, EventInfo_UserEvent info)
+{
+    event->eventInfoJson = cJSON_CreateObject();
+    cJSON_AddNumberToObject(event->eventInfoJson,"clientID",info.clientID);
+    cJSON_AddStringToObject(event->eventInfoJson,"attractionName",info.attractionName);
+}
+void general_createEventInfoFor_UserEvent(CreateEventInfo_Params param)
+{
+    createEventInfoFor_UserEvent(param.event, *((EventInfo_UserEvent*)(param.eventInfo)) );
+}
+
+void createEventInfoFor_UserEventPark(Event *event, EventInfo_UserEventPark info)
+{
+    event->eventInfoJson = cJSON_CreateObject();
+    cJSON_AddNumberToObject(event->eventInfoJson,"clientID",info.clientID);
+}
+void general_createEventInfoFor_UserEventPark(CreateEventInfo_Params param)
+{
+    createEventInfoFor_UserEventPark(param.event, *((EventInfo_UserEventPark*)(param.eventInfo)) );
+}
+
+void createEventInfoFor_UserEventWaitingLine(Event *event, EventInfo_UserEventWaitingLine info)
+{
+    event->eventInfoJson = cJSON_CreateObject();
+    cJSON_AddNumberToObject(event->eventInfoJson,"clientID",info.clientID);
+    cJSON_AddStringToObject(event->eventInfoJson,"attractionName",info.attractionName);
+    cJSON_AddNumberToObject(event->eventInfoJson,"LineSize",info.lineSize);
+}
+void general_createEventInfoFor_UserEventWaitingLine(CreateEventInfo_Params param){
+    createEventInfoFor_UserEventWaitingLine(param.event, *((EventInfo_UserEventWaitingLine*)(param.eventInfo)) );
+}
+
+EventInfo_UserEvent getInfoEvent_UserEvent(Event *event)
+{
+
+    if (!event->eventInfoJson)
+        printFatalError("Wrong event type not UserEvent, eventInfoJson is not defined.");
+    
+    EventInfo_UserEvent eventInfo;
+    int error = loadItemNumber2(event->eventInfoJson,"clientID", &eventInfo.clientID);
+    error += loadItemString2(event->eventInfoJson,"attractionName", &eventInfo.attractionName);
+
+    if (error >0)
+        printFatalError("Wrong event type, eventInfoJson type is not EventInfo_UserEvent.");
+    
+    return eventInfo;
+}
+
+EventInfo_UserEventPark getInfoEvent_UserEventPark(Event *event)
+{
+
+    if (!event->eventInfoJson)
+        printFatalError("Wrong event type not UserEvent, eventInfoJson is not defined.");
+    
+    EventInfo_UserEventPark eventInfo;
+    int error = loadItemNumber2(event->eventInfoJson,"clientID", &eventInfo.clientID);
+
+    if (error >0)
+        printFatalError("Wrong event type, eventInfoJson type is not EventInfo_UserEvent.");
+    
+    return eventInfo;
+}
+
+EventInfo_UserEventWaitingLine getInfoEvent_UserEventWaitingLine(Event *event)
+{
+        
+    if (!event->eventInfoJson)
+        printFatalError("Wrong event type not UserEventWaitingLine, eventInfoJson is not defined.");
+    
+    EventInfo_UserEventWaitingLine eventInfo;
+    int error = loadItemNumber2(event->eventInfoJson,"clientID", &eventInfo.clientID);
+    error += loadItemString2(event->eventInfoJson,"attractionName", &eventInfo.attractionName);
+    error += loadItemNumber2(event->eventInfoJson,"lineSize", &eventInfo.lineSize);
+
+    if (error >0)
+        printFatalError("Wrong event type, eventInfoJson type is not EventInfo_UserEventWaitingLine.");
+    
+    return eventInfo;
+}
+
+void asyncCreateEvent_UserEvent(Date date, EventInfo_UserEvent eventInfo, int userEvent, int eventInfo_estimatedSize, EventMsgHandler handler)
+{
+    CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                        USER_EVENT,
+                                        userEvent,
+                                        date,
+                                        general_createEventInfoFor_UserEvent,
+                                        eventInfo_estimatedSize,
+                                        handler
+                                    );
+
+    EventInfo_UserEvent* newEventInfo = (EventInfo_UserEvent*)malloc(sizeof(EventInfo_UserEvent));
+    if (newEventInfo == NULL) {
+        // Handle the error, probably by logging and exiting the function or program
+        fprintf(stderr, "Failed to allocate memory for the newEventInfo.\n");
+        return; // or handle error as appropriate
+    }
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
+    createDetachThread(asyncCreateEvent,parameters);
+}
+
+void asyncCreateEvent_UserEventPark(Date date, EventInfo_UserEventPark eventInfo, int userEvent, int eventInfo_estimatedSize, EventMsgHandler handler)
+{
+    CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                        USER_EVENT,
+                                        userEvent,
+                                        date,
+                                        general_createEventInfoFor_UserEventPark,
+                                        eventInfo_estimatedSize,
+                                        handler
+                                    );
+
+    EventInfo_UserEventPark* newEventInfo = (EventInfo_UserEventPark*)malloc(sizeof(EventInfo_UserEventPark));
+    if (newEventInfo == NULL) {
+        // Handle the error, probably by logging and exiting the function or program
+        fprintf(stderr, "Failed to allocate memory for the newEventInfo.\n");
+        return; // or handle error as appropriate
+    }
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
+    createDetachThread(asyncCreateEvent,parameters);
+}
+
+void asyncCreateEvent_UserEventWaitingLine(Date date, EventInfo_UserEventWaitingLine eventInfo, int userEventWaitingLine, int eventInfo_estimatedSize, EventMsgHandler handler)
+{
+            CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                            USER_EVENT,
+                                            userEventWaitingLine,
+                                            date,
+                                            general_createEventInfoFor_UserEventWaitingLine,
+                                            eventInfo_estimatedSize,
+                                            handler
+                                        );
+
+    EventInfo_UserEventWaitingLine* newEventInfo = (EventInfo_UserEventWaitingLine*)malloc(sizeof(EventInfo_UserEventWaitingLine));
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
+    createDetachThread(asyncCreateEvent,parameters);
+}
+
+char *extractEvent_UserEvent(Event *event)
+{
+    EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"id: %d Attraction: %s",eventInfo.clientID,eventInfo.attractionName); 
+//    printf("%s",eventInfoString);
+    return eventInfoString;
+}
+
+char *extractEvent_UserEventPark(Event *event)
+{
+    EventInfo_UserEventPark eventInfo = getInfoEvent_UserEventPark(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"id: %d",eventInfo.clientID); 
+//    printf("%s",eventInfoString);
+    return eventInfoString;
+}
+
+char *extractEvent_UserEventWaitingLine(Event *event)
+{
+    EventInfo_UserEventWaitingLine eventInfo = getInfoEvent_UserEventWaitingLine(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"id: %d Attraction: %s LineSize: %d", eventInfo.clientID, eventInfo.attractionName, eventInfo.lineSize); 
+//    printf("%s",eventInfoString);
+    return eventInfoString;
 }
 
 /**

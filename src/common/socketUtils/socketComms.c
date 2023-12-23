@@ -69,9 +69,14 @@ char* recvMsg(int recvFrom_fd, int bufferSize, int maxResizes){
     int totalBufferSize = bufferSize;
 
     char* strReadden = malloc(sizeof(char)*bufferSize);
+    if (strReadden == NULL) {
+        // Handle the error, probably by logging and exiting the function or program
+        fprintf(stderr, "Failed to allocate memory for the strReadden.\n");
+        return NULL; // or handle error as appropriate
+    }
     char* bufferPointer = strReadden;
     char* strBufferResize;
-    
+
     do{
 
         charsReadden = read(recvFrom_fd, &readdenChar, 1);
@@ -115,8 +120,12 @@ char* recvMsg(int recvFrom_fd, int bufferSize, int maxResizes){
             bufferPointer++;
 
     }while ( readdenChar != '\n' && readdenChar != '\0' /*&& numberOffResizes <= maxBufferResizes */);   
-
     char* str = (char*)malloc(sizeof(char)*(totalCharsReadden+1) );
+    if (str == NULL) {
+        // Handle the error, probably by logging and exiting the function or program
+        fprintf(stderr, "Failed to allocate memory for the string.\n");
+        return NULL; // or handle error as appropriate
+    }
     bzero(str, totalCharsReadden+1 ); // clean allocated str
 
     memcpy(str, strReadden, totalCharsReadden);

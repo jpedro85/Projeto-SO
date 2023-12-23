@@ -47,10 +47,12 @@ void startSimulation()
     waitFirstConnection();
     clock_gettime(CLOCK_REALTIME,&startTime);
 
-    // EventInfo_AttractionEvent eventInfo;
-    // eventInfo.attractionName = "Rio Lento";
-    // asyncCreateEvent_AttractionEvent( getCurrentSimulationDate(startTime,simulationConf.dayLength_s), eventInfo, sizeof(eventInfo), addMsgToQueue);
-
+    // EventInfo_UserEventPark eventInfo;
+    // eventInfo.clientID = 0;
+    // asyncCreateEvent_UserEventPark( getCurrentSimulationDate(startTime,simulationConf.dayLength_s), eventInfo, 0, sizeof(eventInfo), addMsgToQueue);
+    
+    // sleep(2);
+    
     int threadError = pthread_create(&simulationStartThread, NULL, createParkClients, NULL);
     if (threadError == -1)
     {

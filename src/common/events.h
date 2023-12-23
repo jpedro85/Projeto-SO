@@ -24,7 +24,7 @@ typedef enum {
 }ParkEvent;
 extern char* parkEventNames[];
 
-// TODO: implement all
+// TODO: Review
 typedef enum {
     ATTRACTION_OPEN,
     ATTRACTION_CLOSED,
@@ -33,18 +33,18 @@ typedef enum {
 }AttractionEvent;
 extern char* attractionEventNames[];
 
-// TODO: Implement all this events
+// TODO: review
 typedef enum {
-    ENTERING_PARK,
-    LEAVING_PARK,
-    ENTERING_WAITING_LINE,
-    LEAVING_WAITING_LINE,
-    USING_VIP,
-    ENTERING_RIDE,
-    LEAVING_RIDE,
-    ENTERING_ATTRACTION,
-    LEAVING_ATTRACTION,
-    ENTERING_DENIED,
+    ENTERING_PARK, // clientID
+    LEAVING_PARK, // clientID
+    ENTERING_WAITING_LINE, // clientID, attractionName and line size
+    LEAVING_WAITING_LINE, // clientID, attractionName and line Size
+    USING_VIP, // clientID and attractionName
+    ENTERING_RIDE, // clientID and attractionName
+    LEAVING_RIDE, // clientID and attractionName 
+    ENTERING_DENIED, // clientID and attractionName
+    // ENTERING_ATTRACTION,
+    // LEAVING_ATTRACTION,
 }UserEvent;
 extern char* userEventNames[];
 
@@ -99,6 +99,7 @@ typedef struct {
 void createEventInfoFor_SimulationMessage(Event* event, EvenInfo_SimulationMessage info);
 EvenInfo_SimulationMessage getInfoEvent_SimulationMessage(Event* event);
 void asyncCreateEvent_SimulationMessage(Date date, EvenInfo_SimulationMessage eventInfo,int eventInfo_estimatedSize, EventMsgHandler handler);
+char* extractEvent_SimulationMessage(Event* event);
 
 typedef struct {
     char* attractionName;
@@ -106,6 +107,36 @@ typedef struct {
 
 void createEventInfoFor_AttractionEvent(Event* event, EventInfo_AttractionEvent info);
 EventInfo_AttractionEvent getInfoEvent_AttractionEvent(Event* event);
-void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent eventInfo,int eventInfo_estimatedSize, EventMsgHandler handler);
+void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent eventInfo,int attractionEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
+char* extractEvent_AttractionEvent(Event* event);
+
+typedef struct {
+    int clientID;
+    char* attractionName;
+} EventInfo_UserEvent;
+
+typedef struct {
+    int clientID;
+} EventInfo_UserEventPark;
+
+typedef struct {
+    int clientID;
+    char* attractionName;
+    int lineSize;
+} EventInfo_UserEventWaitingLine;
+
+void createEventInfoFor_UserEvent(Event* event, EventInfo_UserEvent info);
+void createEventInfoFor_UserEventPark(Event* event, EventInfo_UserEventPark info);
+void createEventInfoFor_UserEventWaitingLine(Event *event, EventInfo_UserEventWaitingLine info);
+EventInfo_UserEvent getInfoEvent_UserEvent(Event* event);
+EventInfo_UserEventPark getInfoEvent_UserEventPark(Event *event);
+EventInfo_UserEventWaitingLine getInfoEvent_UserEventWaitingLine(Event *event);
+void asyncCreateEvent_UserEvent(Date date, EventInfo_UserEvent eventInfo,int userEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
+void asyncCreateEvent_UserEventPark(Date date, EventInfo_UserEventPark eventInfo,int userEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
+void asyncCreateEvent_UserEventWaitingLine(Date date, EventInfo_UserEventWaitingLine eventInfo,int userEventWaitingLine,int eventInfo_estimatedSize, EventMsgHandler handler);
+char* extractEvent_UserEvent(Event* event);
+char* extractEvent_UserEventPark(Event* event);
+char* extractEvent_UserEventWaitingLine(Event* event);
+
 
 #endif
