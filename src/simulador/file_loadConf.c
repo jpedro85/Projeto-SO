@@ -26,7 +26,6 @@ int loadItemLinkedListSchedule( cJSON* cJsonObject, char* objectName, LinkedList
 
             errorCount += loadItemNumber(item,"startTime_ms",&(schedule->startTime_ms));
             errorCount += loadItemNumber(item,"endTime_ms",&(schedule->endTime_ms));
-            schedule->done = false;
 
             if(errorCount > 0){
                 printError("Could not load array");
@@ -73,10 +72,11 @@ int loadAttraction(cJSON* attraction_Object, Attraction* attraction){
         errorCount += loadItemNumber(attraction_Object,"maxAge",&(attraction->maxAge));
         errorCount += loadItemNumber(attraction_Object,"duration_ms",&(attraction->duration_ms));
         errorCount += loadItemNumber(attraction_Object,"rideCapacity",&(attraction->rideCapacity));
+        errorCount += loadItemNumber(attraction_Object,"attractionRideMinLoad",&(attraction->attractionRideMinLoad));
+        errorCount += loadItemNumber(attraction_Object,"rideBeginMaxWaitTime_ms",&(attraction->rideBeginMaxWaitTime_ms));
 
         initialize_LinkedList(&(attraction->scheduleList));
         errorCount += loadItemLinkedListSchedule(attraction_Object,"scheduleList",&(attraction->scheduleList));
-        initialize_LinkedList(&(attraction->currentAttendance));
         initialize_LinkedList(&(attraction->waitingLine));
 
 
@@ -152,11 +152,15 @@ int loadSimulationConfig(cJSON* cJsonObject ,SimulationConf* simulationConf){
         errorCount += loadItemNumber(simulation,"userMaxAge",&(simulationConf->userMaxAge));
         errorCount += loadItemNumber(simulation,"userMinAge",&(simulationConf->userMinAge));
         errorCount += loadItemNumber(simulation,"userMinWaitingTime_ms",&(simulationConf->userMinWaitingTime_ms));
+        errorCount += loadItemNumber(simulation,"numberOfDaysToSimulate",&(simulationConf->numberOfDaysToSimulate));
+        errorCount += loadItemNumber(simulation,"userLeaveChance_percentage",&(simulationConf->userLeaveChance_percentage));
+        errorCount += loadItemNumber(simulation,"userHasVipPassChance_percentage",&(simulationConf->userHasVipPassChance_percentage));
 
         if(errorCount > 0){
             printf("\033[1;33mSimulation object Loaded with %d errors!\033[1;0m\n",errorCount);
         }else{
             printSuccess("Loaded simulation object successfully.");
+            simulationConf->dayLength_ms = simulationConf->dayLength_s * 1000;
             return 0;
         }
 

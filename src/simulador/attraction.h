@@ -1,9 +1,10 @@
 #ifndef ATTRACTION_H
 #define ATTRACTION_H
 
-#include <stdbool.h>
-
+#include <pthread.h>
 #include "../common/linked_list.h"
+#include <semaphore.h>
+#include <stdbool.h>
 
 typedef struct {
 
@@ -14,13 +15,25 @@ typedef struct {
 
     int duration_ms;
     int rideCapacity;
+    int attractionRideMinLoad;
+    int rideBeginMaxWaitTime_ms;
     
     bool isOpen;
-    bool isRunning;
+    pthread_rwlock_t isOpen_rwlock_t;
 
-    LinkedList currentAttendance;
+    bool isRunning;
+    pthread_rwlock_t isRunning_rwlock_t;
+
+    int currentAttendance;
+    sem_t enterRide_sem_t;
+    pthread_t rideCycles_thread;
+
+    pthread_mutex_t currentAttendance_mut_t;
+
     LinkedList waitingLine;
 
 }Attraction;
+
+void startAttractionSimulation();
 
 #endif

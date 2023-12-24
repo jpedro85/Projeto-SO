@@ -26,7 +26,7 @@ void *createParkClients()
     printWarning("server: started creating users.");
     while (true)
     {
-        sem_wait(&park.parkVacancy);
+        sem_wait(&park.parkVacancy_sem_t);
 
         // Randomizes arrival time between the clients
         int userWaitingTime = rand() % (simulationConf.averageClientArriveTime_ms - simulationConf.toleranceClientArriveTime_ms) + simulationConf.toleranceClientArriveTime_ms;
@@ -118,7 +118,7 @@ void removeClient(User *client)
     char formattedString[100];
     sprintf(formattedString, "\nThe client %d has left the park", client->id);
     addMsgToQueue(formattedString);
-    sem_post(&park.parkVacancy);
+    sem_post(&park.parkVacancy_sem_t);
     pthread_exit(0);
 }
 
