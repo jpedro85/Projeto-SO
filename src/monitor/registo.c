@@ -13,7 +13,7 @@ void writeRecord(FILE* file, int entity, int event, int time) {
     // Check if snprintf was successful
     if (string_length < 0) {
         fprintf(stderr, "Failed to determine the string length.\n");
-        free(strEvent);
+        // free(strEvent);
         return;
     }
 
@@ -23,7 +23,7 @@ void writeRecord(FILE* file, int entity, int event, int time) {
     // Check if memory allocation was successful
     if (string == NULL) {
         fprintf(stderr, "Failed to allocate memory for the string.\n");
-        free(strEvent);
+        // free(strEvent);
         return;
     }
 

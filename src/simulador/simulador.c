@@ -12,6 +12,7 @@
 #include "globals.h"
 #include "user.h"
 #include "park.h"
+#include "../common/events.h"
 
 pthread_t simulationStartThread;
 

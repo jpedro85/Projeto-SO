@@ -37,7 +37,7 @@ int main(int argc , char *argv[] ){
     int error;
     while(1){
         
-        str = recvMsg(serverSocket,512,8);
+        str = recvMsg(serverSocket,512,4);
         if(str == NULL)
             if(errno == CONNECTION_CLOSED)
                 break;
@@ -50,8 +50,10 @@ int main(int argc , char *argv[] ){
                 char* str = eventToString(event,extractEvent_SimulationUserCreated);
                 printf("%s \n",str);
                 free(str);
-            }else
+            }else{
                 printSuccess(str);
+                // free(str);
+            }
         }
     }
 

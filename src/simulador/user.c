@@ -12,7 +12,6 @@
 #include "attraction.h"
 #include "globals.h"
 
-
 int id = 0;
 pthread_t parkClientThread;
 
@@ -23,7 +22,7 @@ pthread_t parkClientThread;
  * The function creates park clients with random arrival times.
  */
 void *createParkClients()
-{   
+{
     printWarning("server: started creating users.");
     while (true)
     {
@@ -50,19 +49,19 @@ void createParkClient(int waitTime)
     usleep(waitTimeToMicrosecond);
 
     // Creating the new Client with random values
-    User* newUser = (User*)malloc(sizeof(User));
+    User *newUser = (User *)malloc(sizeof(User));
     createRandomClient(newUser);
     pthread_create(&parkClientThread, NULL, simulateUserActions, newUser);
 
-    //Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
+    // Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
     EvenInfo_SimulationUserCreated userInfo;
     userInfo.userId = newUser->id;
     userInfo.userAge = newUser->age;
     userInfo.hasVipPass = newUser->vipPass;
-    asyncCreateEvent_UserCreated( getCurrentSimulationDate(startTime,simulationConf.dayLength_s), userInfo, 6, addMsgToQueue);
+    asyncCreateEvent_UserCreated(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), userInfo, 6, addMsgToQueue);
 
-    //createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
-    //async_addMsgToQueue(eventToJSON_String(userCreated,6));
+    // createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
+    // async_addMsgToQueue(eventToJSON_String(userCreated,6));
 }
 
 /**
@@ -144,10 +143,12 @@ void chooseAttraction(User *client)
     // If not it leaves the chooses another action
     if (!canClientBeOnAttraction(client, attractionChosen))
     {
-        char formattedString[100];
-        sprintf(formattedString, "\nThe client %d is not permitted to enter the attraction %s", client->id, attractionChosen->name);
-        addMsgToQueue(formattedString);
-
+        // TODO: Uncomment
+        // EventInfo_UserEvent eventInfo;
+        // eventInfo.clientID = client->id;
+        // eventInfo.attractionName = attractionChosen->name;
+        // asyncCreateEvent_UserEvent(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_DENIED, sizeof(eventInfo), addMsgToQueue);
+        
         return;
     }
 
@@ -160,7 +161,6 @@ void chooseAttraction(User *client)
 
 bool canClientBeOnAttraction(User *client, Attraction *attraction)
 {
-    // TODO checks for the age, if its open or not, if its running
     if (client->age < attraction->minAge || (attraction->maxAge != 0 && client->age > attraction->maxAge) || !attraction->isOpen)
     {
         return false;

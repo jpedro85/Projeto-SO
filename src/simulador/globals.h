@@ -21,12 +21,4 @@ extern Park park;
 extern SimulationConf simulationConf;
 extern struct timespec startTime;
 
-
-//extern int dayCounter;
-//extern pthread_rwlock_t dayStartedCondition_rwlock_t;
-
-
-extern struct timespec currentDayStartTime;
-
-
 #endif

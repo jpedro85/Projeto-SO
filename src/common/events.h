@@ -23,6 +23,8 @@ typedef enum {
     PARK_CLOSED,
 }ParkEvent;
 extern char* parkEventNames[];
+
+// TODO: Review
 typedef enum {
     ATTRACTION_OPEN,
     ATTRACTION_CLOSED,
@@ -31,17 +33,18 @@ typedef enum {
 }AttractionEvent;
 extern char* attractionEventNames[];
 
+// TODO: review
 typedef enum {
-    ENTERING_PARK,
-    LEAVING_PARK,
-    ENTERING_WAITING_LINE,
-    LEAVING_WAITING_LINE,
-    USING_VIP,
-    ENTERING_RIDE,
-    LEAVING_RIDE,
-    ENTERING_ATTRACTION,
-    LEAVING_ATTRACTION,
-    ENTERING_DENIED,
+    ENTERING_PARK, // clientID
+    LEAVING_PARK, // clientID
+    ENTERING_WAITING_LINE, // clientID, attractionName and line size
+    LEAVING_WAITING_LINE, // clientID, attractionName and line Size
+    USING_VIP, // clientID and attractionName
+    ENTERING_RIDE, // clientID and attractionName
+    LEAVING_RIDE, // clientID and attractionName 
+    ENTERING_DENIED, // clientID and attractionName
+    // ENTERING_ATTRACTION,
+    // LEAVING_ATTRACTION,
 }UserEvent;
 extern char* userEventNames[];
 
@@ -96,23 +99,44 @@ typedef struct {
 void createEventInfoFor_SimulationMessage(Event* event, EvenInfo_SimulationMessage info);
 EvenInfo_SimulationMessage getInfoEvent_SimulationMessage(Event* event);
 void asyncCreateEvent_SimulationMessage(Date date, EvenInfo_SimulationMessage eventInfo,int eventInfo_estimatedSize, EventMsgHandler handler);
-// // Functions to specify event info for ParkEvent 
-// cJSON* evenInfoToJson_ParkOpen(); 
-// cJSON* evenInfoToJson_ParkClosed(); 
+char* extractEvent_SimulationMessage(Event* event);
 
-// // Functions to specify event info for AttractionEvent
-// cJSON* evenInfoToJson_AttractionOpen();  
-// cJSON* evenInfoToJson_AttractionClosed();
-// cJSON* evenInfoToJson_AttractionRideStarted();  
-// cJSON* evenInfoToJson_AttractionRideEnded();
+typedef struct {
+    char* attractionName;
+} EventInfo_AttractionEvent;
 
-// // Functions to specify event info for AttractionEvent
-// cJSON* evenInfoToJson_UserEnteringPark();  
-// cJSON* evenInfoToJson_UserLeavingPark();
-// cJSON* evenInfoToJson_UserEnteringWaitingLine(/*bool vipAcess*/);  
-// cJSON* evenInfoToJson_UserLeavingWaitingLine();
-// cJSON* evenInfoToJson_UserEnteringRide();  
-// cJSON* evenInfoToJson_UserLeavingRide();
-// cJSON* evenInfoToJson_UserEnteringAttraction();  
-// cJSON* evenInfoToJson_UserLeavingAttraction();
+void createEventInfoFor_AttractionEvent(Event* event, EventInfo_AttractionEvent info);
+EventInfo_AttractionEvent getInfoEvent_AttractionEvent(Event* event);
+void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent eventInfo,int attractionEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
+char* extractEvent_AttractionEvent(Event* event);
+
+typedef struct {
+    int clientID;
+    char* attractionName;
+} EventInfo_UserEvent;
+
+typedef struct {
+    int clientID;
+} EventInfo_UserEventPark;
+
+typedef struct {
+    int clientID;
+    char* attractionName;
+    int lineSize;
+} EventInfo_UserEventWaitingLine;
+
+void createEventInfoFor_UserEvent(Event* event, EventInfo_UserEvent info);
+void createEventInfoFor_UserEventPark(Event* event, EventInfo_UserEventPark info);
+void createEventInfoFor_UserEventWaitingLine(Event *event, EventInfo_UserEventWaitingLine info);
+EventInfo_UserEvent getInfoEvent_UserEvent(Event* event);
+EventInfo_UserEventPark getInfoEvent_UserEventPark(Event *event);
+EventInfo_UserEventWaitingLine getInfoEvent_UserEventWaitingLine(Event *event);
+void asyncCreateEvent_UserEvent(Date date, EventInfo_UserEvent eventInfo,int userEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
+void asyncCreateEvent_UserEventPark(Date date, EventInfo_UserEventPark eventInfo,int userEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
+void asyncCreateEvent_UserEventWaitingLine(Date date, EventInfo_UserEventWaitingLine eventInfo,int userEventWaitingLine,int eventInfo_estimatedSize, EventMsgHandler handler);
+char* extractEvent_UserEvent(Event* event);
+char* extractEvent_UserEventPark(Event* event);
+char* extractEvent_UserEventWaitingLine(Event* event);
+
+
 #endif
