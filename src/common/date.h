@@ -11,5 +11,8 @@ Date getCurrentSimulationDate(struct timespec beginTime, int dayLength_s );
 
 char* dateToString(Date date);
 
+int getCurrentTime_ms(struct timespec dayBeginTime);
+
+void getActualTimespec(struct timespec* currentTime);
 
 #endif

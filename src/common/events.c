@@ -1,12 +1,12 @@
 #include <string.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <stdlib.h>
 
 #include "events.h"
 #include "consoleAddons.h"
 #include "file.h"
 #include "string_utils.h"
+#include "mutexAddons.h"
 
 char* parkEventNames[] = {
     "Park Opened",
@@ -172,20 +172,9 @@ CreateEvent_AsyncParam* create_CreateEvent_AsyncParam(EventType eventType,int ev
 
     return parameters;
 }
-
-typedef void* (*ThreadFunction) (void*);
+// Todo : add error correctly for all createDetachThread calls 
 void createDetachThread(ThreadFunction func , CreateEvent_AsyncParam* parameters){
-
-    pthread_t thread;
-    pthread_attr_t detachedThread;
-    pthread_attr_init(&detachedThread);
-    pthread_attr_setdetachstate(&detachedThread,PTHREAD_CREATE_DETACHED);
-
-    if( pthread_create( &thread, &detachedThread, func , parameters) ){
-        printFatalError("Can not create thread for async_CreateEvent.");
-    }
-
-    pthread_attr_destroy(&detachedThread);
+    create_DetachThread(func, parameters, "async_CreateEvent");
 }
 
 void* asyncCreateEvent( void* createEvent_AsyncParam){

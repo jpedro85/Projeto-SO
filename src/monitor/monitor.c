@@ -37,8 +37,7 @@ int main(int argc , char *argv[] ){
     int error;
     while(1){
         
-
-        str = recvMsg(serverSocket,512,4);
+        str = recvMsg(serverSocket,512,8);
         if(str == NULL)
             if(errno == CONNECTION_CLOSED)
                 break;
