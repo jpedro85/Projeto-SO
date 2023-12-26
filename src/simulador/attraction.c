@@ -238,6 +238,7 @@ void startAttraction(void* attractionP){
 
     attraction->isRunning = false;
     attraction->currentAttendance = 0;
+    attraction->rideCounter = 0;
     mutex_init(&(attraction->currentAttendance_mut_t),"currentAttendance_mut_t");
     semInit(&(attraction->enterRide_sem_t),attraction->rideCapacity,"enterRide_sem_t");
 }
