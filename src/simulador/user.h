@@ -11,7 +11,14 @@ typedef struct
     int age;
     int vipPass;
     int currentAttraction; // Assuming pthread_t is the type for a thread
+    int state;
 } User;
+
+typedef enum{
+    IN_RIDE,
+    IN_WAITING_LINE,
+    IN_PARK
+}UserState;
 
 
 void* createParkClients();
