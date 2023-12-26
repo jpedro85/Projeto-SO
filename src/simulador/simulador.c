@@ -101,45 +101,6 @@ void startSimulation()
     // pthread_join(simulationStartThread, 0);
     
 }
-
-
-// void startCountingDays(){
-
-//     //starting counting time;
-//     clock_gettime(CLOCK_REALTIME,&startTime);
-//     dayCounter = 0;
-
-//     rwlock_init(&dayStartedCondition_rwlock_t,"dayStartedCondition_rwlock_t");
-
-//     printInfo("in:");
-//     //update day until simulationConf.numberOfDaysToSimulate day 0 is the first
-//     for (int day = 1; day <= simulationConf.numberOfDaysToSimulate ; day++)
-//     {
-//         writelock(&dayStartedCondition_rwlock_t,"dayStartedCondition_rwlock_t");
-//         dayCounter = day;
-//         rwlock_unlock(&dayStartedCondition_rwlock_t,"dayStartedCondition_rwlock_t");
-//         printf("%d \n",dayCounter);
-
-//        // clock_gettime(CLOCK_REALTIME,&currentDayStartTime);
-//         //signal all threads waiting on dayStarted_cond_t
-//         // if(pthread_cond_broadcast(&dayStarted_cond_t) !=0)
-//         //     printFatalError("Can not broadCast to dayStarted_cond_t");
-       
-//         sleep(simulationConf.dayLength_s);
-//         //TODO: verify needing mutex for changing dayCounter and currentDayStartTime
-//         //TODO: verify last days conditions
-
-        
-//     }
-     
-//     printInfo("Ended");
-
-//     sleep(10);
-//     stopSimulation();
-
-// }
-
 void stopSimulation()
 {
 }
-

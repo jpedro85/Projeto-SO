@@ -2,9 +2,11 @@
 #define ATTRACTION_H
 
 #include <pthread.h>
-#include "../common/linked_list.h"
 #include <semaphore.h>
 #include <stdbool.h>
+
+#include "../common/linked_list.h"
+#include "user.h"
 
 typedef struct {
 
@@ -31,10 +33,15 @@ typedef struct {
 
     pthread_mutex_t currentAttendance_mut_t;
 
+    //User LinkedList
     LinkedList waitingLine;
+    pthread_mutex_t waitingLine_mutex_t;
 
 }Attraction;
 
 void startAttractionSimulation();
+
+void enterAttraction(User *client, Attraction *attraction);
+void leaveAttraction(User *client, Attraction *attraction);
 
 #endif

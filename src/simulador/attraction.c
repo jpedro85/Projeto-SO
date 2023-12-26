@@ -240,6 +240,7 @@ void startAttraction(void* attractionP){
     attraction->currentAttendance = 0;
     attraction->rideCounter = 0;
     mutex_init(&(attraction->currentAttendance_mut_t),"currentAttendance_mut_t");
+    mutex_init(&(attraction->waitingLine_mutex_t),"waitingLine_mutex_t");
     semInit(&(attraction->enterRide_sem_t),attraction->rideCapacity,"enterRide_sem_t");
 }
 
@@ -263,5 +264,70 @@ void startAttractionSimulation(){
 
         create_DetachThread(scheduleOpenCloseActiveWait, params, "Attraction scheduleOpenClose");
         //TODO: others ?
+    }
+}
+
+void enterAttraction(User *client, Attraction *attraction) {
+    
+    EventInfo_UserEventWaitingLine eventInfo;
+
+    lockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+    addValue_LinkedList(&(attraction->waitingLine),client);
+    eventInfo.lineSize = attraction->waitingLine.length;
+    unlockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+
+    eventInfo.clientID = client->id;
+    eventInfo.attractionName = attraction->name;
+    asyncCreateEvent_AttractionRideEvent(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),eventInfo,ENTERING_WAITING_LINE,5,addMsgToQueue);
+}
+
+void leaveAttraction_waitingLine(User *client, Attraction *attraction) {
+
+    EventInfo_UserEventWaitingLine eventInfo;
+    ListItem* attractionItem;
+    lockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+
+    int index = 0;
+    ForEach_LinkedList((&(attraction->waitingLine)),attractionItem){
+
+        if( ((User*)(attractionItem->value))->id == client->id ){
+            removeItemByIndex_LinkedList(&(attraction->waitingLine),index);
+            break;
+        }
+        index++;
+    }
+
+    eventInfo.lineSize = attraction->waitingLine.length;
+    unlockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+
+    eventInfo.clientID = client->id;
+    eventInfo.attractionName = attraction->name;
+
+    asyncCreateEvent_AttractionRideEvent(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),eventInfo,LEAVING_WAITING_LINE,5,addMsgToQueue);
+}
+
+void leaveAttraction_ride(){
+    //TODO: leave ride;
+}
+
+/**
+ * The function leaveAttraction is used to handle the process of a user leaving an attraction.
+ * 
+ * @param client A pointer to the User object representing the client who wants to leave the
+ * attraction.
+ * @param attraction The "attraction" parameter is a pointer to an object of type "Attraction". It
+ * represents the attraction from which the user wants to leave.
+ */
+void leaveAttraction(User *client, Attraction *attraction){
+
+    if(client->state == IN_WAITING_LINE){
+        leaveAttraction_waitingLine(client,attraction);
+    }else if(client->state = IN_RIDE){
+        leaveAttraction_ride(client,attraction);
+    }else{
+        EvenInfo_SimulationError eventInfo;
+        eventInfo.errorMsg = "Incorrect State in leaveAttraction";
+        eventInfo.value = 0;
+        asyncCreateEvent_SimulationError(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),eventInfo,5,addMsgToQueue);
     }
 }
