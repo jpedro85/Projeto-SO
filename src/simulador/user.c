@@ -12,7 +12,6 @@
 #include "attraction.h"
 #include "globals.h"
 
-
 int id = 0;
 pthread_t parkClientThread;
 
@@ -24,11 +23,11 @@ pthread_t parkClientThread;
  * The function creates park clients with random arrival times.
  */
 void *createParkClients()
-{   
+{
     printWarning("server: started creating users.");
     while (true)
     {
-        sem_wait(&park.parkVacancy);
+        sem_wait(&park.parkVacancy_sem_t);
 
         // Randomizes arrival time between the clients
         int userWaitingTime = rand() % (simulationConf.averageClientArriveTime_ms - simulationConf.toleranceClientArriveTime_ms) + simulationConf.toleranceClientArriveTime_ms;
@@ -51,17 +50,19 @@ void createParkClient(int waitTime)
     usleep(waitTimeToMicrosecond);
 
     // Creating the new Client with random values
-    User* newUser = (User*)malloc(sizeof(User));
+    User *newUser = (User *)malloc(sizeof(User));
     createRandomClient(newUser);
     pthread_create(&parkClientThread, NULL, simulateUserActions, newUser);
 
-    Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
+    // Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
     EvenInfo_SimulationUserCreated userInfo;
     userInfo.userId = newUser->id;
     userInfo.userAge = newUser->age;
     userInfo.hasVipPass = newUser->vipPass;
-    createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
-    addMsgToQueue(eventToJSON_String(userCreated,6));
+    asyncCreateEvent_UserCreated(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), userInfo, 6, addMsgToQueue);
+
+    // createEventInfoFor_SimulationUserCreated(&userCreated,userInfo);
+    // async_addMsgToQueue(eventToJSON_String(userCreated,6));
 }
 
 /**
@@ -121,7 +122,7 @@ void removeClient(User *client)
     char formattedString[100];
     sprintf(formattedString, "\nThe client %d has left the park", client->id);
     addMsgToQueue(formattedString);
-    sem_post(&park.parkVacancy);
+    sem_post(&park.parkVacancy_sem_t);
     pthread_exit(0);
 }
 
@@ -146,12 +147,15 @@ void chooseAttraction(User *client) {
     Attraction *attractionChosen = (Attraction *)getValueByIndex_LinkedList(&park.attractions, attractionChosenIndex);
 
     // If the client meets the requirements or not to enter the ride
-    // If not, it leaves and chooses another action
-    if (!canClientBeOnAttraction(client, attractionChosen)) {
-        char formattedString[100];
-        sprintf(formattedString, "\nThe client %d is not permitted to enter the attraction %s", client->id, attractionChosen->name);
-        addMsgToQueue(formattedString);
-
+    // If not it leaves the chooses another action
+    if (!canClientBeOnAttraction(client, attractionChosen))
+    {
+        // TODO: Uncomment
+        // EventInfo_UserEvent eventInfo;
+        // eventInfo.clientID = client->id;
+        // eventInfo.attractionName = attractionChosen->name;
+        // asyncCreateEvent_UserEvent(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_DENIED, sizeof(eventInfo), addMsgToQueue);
+        
         return;
     }
     // After being on the first attraction

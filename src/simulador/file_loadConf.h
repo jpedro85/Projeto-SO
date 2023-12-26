@@ -6,4 +6,6 @@
 
 void loadConfig(Park* park,SimulationConf* simulationConf, char* configFile);
 
+int verifyLoadedValues(Park* park,SimulationConf* simulationConf);
+
 #endif

@@ -19,6 +19,7 @@ void* removeSendedMsgs();
 void* sendMsgToClient( void* client );
 
 void addMsgToQueue(char* msg);
+void async_addMsgToQueue(char* msg);
 
 #endif
 
