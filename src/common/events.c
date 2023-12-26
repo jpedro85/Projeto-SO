@@ -200,6 +200,33 @@ void* asyncCreateEvent( void* createEvent_AsyncParam){
 }
 
 /**
+ * The function asyncCreateEvent_WithoutInfo creates an event asynchronously without any additional
+ * information.
+ * 
+ * @param date A Date object representing the date of the event.
+ * @param eventType The eventType parameter is of type EventType, which is an enumeration representing
+ * different types of events. It is used to specify the type of event being created.
+ * @param eventEnumValue The eventEnumValue parameter is an integer value that represents the type of
+ * event. It is used to differentiate between different types of events.
+ * @param handler The "handler" parameter is a function pointer to an event message handler. It is used
+ * to specify the function that will be called when the event is created asynchronously.
+ */
+void asyncCreateEvent_WithoutInfo(Date date,EventType eventType, int eventEnumValue,EventMsgHandler handler){
+
+     CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                            eventType,
+                                            eventEnumValue,
+                                            date,
+                                            NULL,
+                                            0,
+                                            handler
+                                        );
+    parameters->eventInfo = NULL;
+    createDetachThread(asyncCreateEvent,parameters);
+
+}
+
+/**
  * The function creates event information for a simulation error.
  * 
  * @param event The "event" parameter is a pointer to an Event structure. This structure 
@@ -231,6 +258,24 @@ void asyncCreateEvent_SimulationError(Date date,EvenInfo_SimulationError eventIn
     *newEventInfo = eventInfo;
     parameters->eventInfo = newEventInfo;
     createDetachThread(asyncCreateEvent,parameters);
+}
+
+/**
+ * The function asyncCreateEvent_SimulationError returns a string containing information about a
+ * simulation error event.
+ * 
+ * @param event The "event" parameter is a pointer to an Event object.
+ * 
+ * @return a pointer to a character array (char*) that contains the information about the simulation
+ * error event.
+ */
+char* extractEvent_SimulationError(Event* event){
+
+    EvenInfo_SimulationError eventInfo = getInfoEvent_SimulationError(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"Value:%s Msg:%d",eventInfo.errorValue,eventInfo.errorMsg); 
+//    printf("%s",eventInfoString);
+    return eventInfoString;
 }
 
 /**
@@ -402,7 +447,7 @@ char* extractEvent_SimulationMessage(Event* event){
 
     EvenInfo_SimulationMessage eventInfo = getInfoEvent_SimulationMessage(event);
     char* eventInfoString = "";
-    asprintf(&eventInfoString,"%s",eventInfo.msg); 
+    asprintf(&eventInfoString,"Msg:%s",eventInfo.msg); 
 //    printf("%s",eventInfoString);
     return eventInfoString;
 }
@@ -431,7 +476,7 @@ EventInfo_AttractionEvent getInfoEvent_AttractionEvent(Event* event){
         printFatalError("Wrong event type not AttractionEvent, eventInfoJson is not defined.");
     
     EventInfo_AttractionEvent eventInfo;
-    int error = loadItemString(event->eventInfoJson,"attractionName", &eventInfo.attractionName);
+    int error = loadItemString2(event->eventInfoJson,"attractionName", &eventInfo.attractionName);
 
     if (error >0)
         printFatalError("Wrong event type, eventInfoJson type is not EventInfo_AttractionEvent.");
@@ -459,8 +504,61 @@ void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent event
 char* extractEvent_AttractionEvent(Event* event){
     EventInfo_AttractionEvent eventInfo = getInfoEvent_AttractionEvent(event);
     char* eventInfoString = "";
-    asprintf(&eventInfoString,"%s",eventInfo.attractionName); 
+    asprintf(&eventInfoString,"Name:%s",eventInfo.attractionName); 
 //    printf("%s",eventInfoString);
+    return eventInfoString;
+}
+
+void createEventInfoFor_AttractionRideEvent(Event *event, EventInfo_AttractionRideEvent info)
+{
+    event->eventInfoJson = cJSON_CreateObject();
+    cJSON_AddStringToObject(event->eventInfoJson,"attractionName",info.attractionName);
+    cJSON_AddNumberToObject(event->eventInfoJson,"usersInRide",info.usersInRide);
+    cJSON_AddNumberToObject(event->eventInfoJson,"usersWaiting",info.usersWaiting);
+    cJSON_AddNumberToObject(event->eventInfoJson,"rideNumber",info.rideNumber);
+}
+void general_createEventInfoFor_AttractionRideEvent(CreateEventInfo_Params param){
+    createEventInfoFor_AttractionRideEvent(param.event, *((EventInfo_AttractionRideEvent*)(param.eventInfo)) );
+}
+
+EventInfo_AttractionRideEvent getInfoEvent_AttractionRideEvent(Event* event){
+    
+    if (!event->eventInfoJson)
+        printFatalError("Wrong event type not AttractionEvent, eventInfoJson is not defined.");
+    
+    EventInfo_AttractionRideEvent eventInfo;
+    int error = loadItemString2(event->eventInfoJson,"attractionName", &eventInfo.attractionName);
+    error = loadItemNumber2(event->eventInfoJson,"usersInRide", &eventInfo.usersInRide);
+    error = loadItemNumber2(event->eventInfoJson,"usersWaiting", &eventInfo.usersWaiting);
+    error = loadItemNumber2(event->eventInfoJson,"rideNumber", &eventInfo.rideNumber);
+
+    if (error >0)
+        printFatalError("Wrong event type, eventInfoJson type is not EventInfo_AttractionEvent.");
+    
+    return eventInfo;
+}
+
+void asyncCreateEvent_AttractionRideEvent(Date date, EventInfo_AttractionRideEvent eventInfo, int attractionRideEvent, int eventInfo_estimatedSize, EventMsgHandler handler){
+    
+    CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                            ATTRACTION_EVENT,
+                                            attractionRideEvent,
+                                            date,
+                                            general_createEventInfoFor_AttractionRideEvent,
+                                            eventInfo_estimatedSize,
+                                            handler
+                                        );
+
+    EventInfo_AttractionRideEvent* newEventInfo = (EventInfo_AttractionRideEvent*)malloc(sizeof(EventInfo_AttractionRideEvent));
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
+    createDetachThread(asyncCreateEvent,parameters);
+}
+
+char* extractEvent_AttractionRideEvent(Event* event){
+    EventInfo_AttractionRideEvent eventInfo = getInfoEvent_AttractionRideEvent(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"Name:%s In Ride[%d]:%d Waiting:%d",eventInfo.attractionName,eventInfo.rideNumber,eventInfo.usersInRide,eventInfo.usersWaiting); 
     return eventInfoString;
 }
 
@@ -609,7 +707,7 @@ char *extractEvent_UserEvent(Event *event)
 {
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(event);
     char* eventInfoString = "";
-    asprintf(&eventInfoString,"id: %d Attraction: %s",eventInfo.clientID,eventInfo.attractionName); 
+    asprintf(&eventInfoString,"Id: %d Attraction: %s",eventInfo.clientID,eventInfo.attractionName); 
 //    printf("%s",eventInfoString);
     return eventInfoString;
 }
@@ -618,7 +716,7 @@ char *extractEvent_UserEventPark(Event *event)
 {
     EventInfo_UserEventPark eventInfo = getInfoEvent_UserEventPark(event);
     char* eventInfoString = "";
-    asprintf(&eventInfoString,"id: %d",eventInfo.clientID); 
+    asprintf(&eventInfoString,"Id: %d",eventInfo.clientID); 
 //    printf("%s",eventInfoString);
     return eventInfoString;
 }
@@ -627,7 +725,7 @@ char *extractEvent_UserEventWaitingLine(Event *event)
 {
     EventInfo_UserEventWaitingLine eventInfo = getInfoEvent_UserEventWaitingLine(event);
     char* eventInfoString = "";
-    asprintf(&eventInfoString,"id: %d Attraction: %s LineSize: %d", eventInfo.clientID, eventInfo.attractionName, eventInfo.lineSize); 
+    asprintf(&eventInfoString,"Id: %d Attraction: %s LineSize: %d", eventInfo.clientID, eventInfo.attractionName, eventInfo.lineSize); 
 //    printf("%s",eventInfoString);
     return eventInfoString;
 }

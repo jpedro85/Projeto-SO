@@ -17,6 +17,7 @@ typedef struct {
     int rideCapacity;
     int attractionRideMinLoad;
     int rideBeginMaxWaitTime_ms;
+    int rideCounter;
     
     bool isOpen;
     pthread_rwlock_t isOpen_rwlock_t;

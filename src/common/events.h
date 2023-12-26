@@ -43,8 +43,7 @@ typedef enum {
     ENTERING_RIDE, // clientID and attractionName
     LEAVING_RIDE, // clientID and attractionName 
     ENTERING_DENIED, // clientID and attractionName
-    // ENTERING_ATTRACTION,
-    // LEAVING_ATTRACTION,
+    LEAVING_ATTRACTION, // clientID and attractionName
 }UserEvent;
 extern char* userEventNames[];
 
@@ -71,7 +70,7 @@ typedef enum {
 }SimulatorEvent;
 extern char* simulatorEventNames[];
 
-// Functions to specify event info for SimulatorEvent
+void asyncCreateEvent_WithoutInfo(Date date,EventType eventType, int eventEnumValue,EventMsgHandler handler);
 typedef struct {
     int errorValue;
     char* errorMsg;
@@ -80,6 +79,7 @@ typedef struct {
 void createEventInfoFor_SimulationError(Event* event, EvenInfo_SimulationError info); 
 EvenInfo_SimulationError getInfoEvent_SimulationError(Event* event);
 void asyncCreateEvent_SimulationError(Date date,EvenInfo_SimulationError eventInfo,int eventInfo_estimatedSize,EventMsgHandler handler);
+char* extractEvent_SimulationError(Event* event);
 
 typedef struct {
     int userId;
@@ -109,6 +109,18 @@ void createEventInfoFor_AttractionEvent(Event* event, EventInfo_AttractionEvent 
 EventInfo_AttractionEvent getInfoEvent_AttractionEvent(Event* event);
 void asyncCreateEvent_AttractionEvent(Date date, EventInfo_AttractionEvent eventInfo,int attractionEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
 char* extractEvent_AttractionEvent(Event* event);
+
+typedef struct {
+    char* attractionName;
+    int usersInRide;
+    int usersWaiting;
+    int rideNumber;
+} EventInfo_AttractionRideEvent;
+
+void createEventInfoFor_AttractionRideEvent(Event* event, EventInfo_AttractionRideEvent info);
+EventInfo_AttractionRideEvent getInfoEvent_AttractionRideEvent(Event* event);
+void asyncCreateEvent_AttractionRideEvent(Date date, EventInfo_AttractionRideEvent eventInfo,int attractionEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
+char* extractEvent_AttractionRideEvent(Event* event);
 
 typedef struct {
     int clientID;

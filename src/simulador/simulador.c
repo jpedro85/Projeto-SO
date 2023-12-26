@@ -13,6 +13,7 @@
 #include "user.h"
 #include "park.h"
 #include "../common/events.h"
+#include "schedule.h"
 
 pthread_t simulationStartThread;
 
@@ -34,6 +35,12 @@ int main(int argc, char *argv[])
 
     system("clear");
     loadConfig(&park, &simulationConf, simulationConfFile);
+    int erroCount = verifyLoadedValues(&park, &simulationConf);
+
+    if(erroCount > 0){
+        printf("\033[1;31mLoaded configuration contains with %d errors!\033[1;0m\n",erroCount ); 
+        printFatalError("");
+    }
 
     startSimulator();
 
@@ -64,18 +71,24 @@ void startSimulation()
     simulationStatus = RUNNING;
     printInfo("Started");
     rwlock_unlock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
-    
-    int status = -1;
-    while(true)
-    {
-        readlock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
-        status = simulationStatus;
-        rwlock_unlock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
 
-        if(status == ENDED)
-            return;
-    }
+    Event event = createEvent(SIMULATOR_EVENT,SIMULATION_STARTED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
+    addMsgToQueue(eventToJSON_String(event,0));
     
+    activeWaitUntilEndOfDay(simulationConf.numberOfDaysToSimulate);
+    Date date = getCurrentSimulationDate(startTime,simulationConf.dayLength_s);
+
+    writelock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
+    simulationStatus = ENDED;
+    printInfo("Ended");
+    rwlock_unlock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
+
+    Event event2 = createEvent(SIMULATOR_EVENT,SIMULATION_ENDED,date);
+    addMsgToQueue(eventToJSON_String(event2,0));
+    
+    //wait for last sends ?
+    sleep(20);
+    //TODO:wait last mesg on sever insted of sleep
 
      //initParkSemaphores();
 

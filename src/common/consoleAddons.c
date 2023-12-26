@@ -35,6 +35,9 @@ void printSuccess(char* success){
     printf("\033[1;32m%s\033[1;0m\n",success); 
 }
 
+void printWithColor(int r ,int g ,int b , char* msg){
+    printf("\033[38;2;%d;%d;%dm%s\033[1;0m",r,g,b,msg);
+}
 void resetColor(){
     printf("\033[1;0m");
 }

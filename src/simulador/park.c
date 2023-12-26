@@ -3,10 +3,11 @@
 
 #include "globals.h"
 #include "schedule.h"
+#include "socketServer/socketServer.h"
 #include "../common/mutexAddons.h"
 #include "../common/consoleAddons.h"
+#include "../common/events.h"
 
-int dayCounter = 0;
 /**
  * The function "openPark" sets the "isOpen" variable in the "park" struct to true, while using a
  * read-write lock to ensure thread safety.
@@ -22,7 +23,7 @@ void openPark(void* param){
     rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
 
     printOption("openPark called");
-    //TODO: add correct Event PARK_OPEN
+    asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_OPEN,addMsgToQueue);
 }
 
 /**
@@ -39,16 +40,7 @@ void closePark(void* param){
     rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
 
     printOption("closePark called");
-
-    dayCounter++;
-
-    if(dayCounter == simulationConf.numberOfDaysToSimulate){
-        writelock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
-        simulationStatus = ENDED;
-        rwlock_unlock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
-        //TODO: add correct Event SIMULATION ENDED
-    }
-    //TODO: add correct Event PARK_CLOSED
+    asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_CLOSED,addMsgToQueue);
 }
 
 /**
@@ -57,7 +49,6 @@ void closePark(void* param){
 void startPark(){
     semInit(&(park.parkVacancy_sem_t),park.parkCapacity,"parkVacancy_sem_t");
     park.isOpen = false;
-    dayCounter = 0;
 }
 
 /**

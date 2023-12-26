@@ -40,7 +40,7 @@ int activeWait(int time_ms ,int day){
 
     }while( elapsedTime_mod < time_ms && day == actualDay);
 
-    printf("elapsedTime %d", elapsedTime_mod);
+    printf("elapsedTime %d,day:%d,at:%d", elapsedTime_mod,actualDay,day);
     return elapsedTime_mod;
 }
 
@@ -52,7 +52,6 @@ int activeWait(int time_ms ,int day){
  */
 void activeWaitEndOfDay(int day){
 
-   
     int elapsedTime = 0;
     int actualDay = -1;
 
@@ -62,6 +61,22 @@ void activeWaitEndOfDay(int day){
         actualDay = (elapsedTime / simulationConf.dayLength_ms);
 
     }while( actualDay == day);
+    
+    printf("EndOFFDay\n");
+}
+
+
+void activeWaitUntilEndOfDay(int day){
+
+    int elapsedTime = 0;
+    int actualDay = -1;
+
+    do{
+       
+        elapsedTime = getCurrentTime_ms(startTime);
+        actualDay = (elapsedTime / simulationConf.dayLength_ms);
+
+    }while( actualDay < day);
     
     printf("EndOFFDay\n");
 }

@@ -224,9 +224,167 @@ void loadConfig(Park* park,SimulationConf* simulationConf, char* configFile){
     errorCount += loadPark(fileOpen_Object,park);
 
     if(errorCount > 0){
-        printError("Could load configuration correctly!");
+        printError("Could not load configuration correctly!");
         printWarning("The program will exit!");
         exit(1);
     } else
         printSuccess("Configuration Loaded.");
+}
+
+
+
+
+
+int verifySchedule(Schedule* schedule,SimulationConf* simulationConf){
+
+    if( (schedule->startTime_ms >= 0 && schedule->startTime_ms <= simulationConf->dayLength_ms) 
+     && 
+     (schedule->endTime_ms >= schedule->startTime_ms && schedule->endTime_ms <= simulationConf->dayLength_ms))
+    {   
+        return 0;
+    }else {
+        return 1;
+    } 
+}
+
+int verifyAttraction(Attraction* attraction,SimulationConf* simulationConf){
+
+    int errorCount = 0;
+    if(attraction->minAge < 0){ 
+        printError("Attraction minAge can not be < 0.");
+        errorCount++;
+    }
+
+    if(attraction->maxAge < attraction->minAge){ 
+        printError("Attraction maxAge can not be < minAge.");
+        errorCount++;
+    }
+
+    if(attraction->duration_ms < 0 || attraction->duration_ms > simulationConf->dayLength_ms){ 
+        printError("Attraction duration_ms can not be < 0 and can not be > dayLength_ms.");
+        errorCount++;
+    }
+
+    if(attraction->rideCapacity < 0 || attraction->attractionRideMinLoad < 0 || attraction->rideBeginMaxWaitTime_ms < 0 ){ 
+        printError("Attraction values < 0");
+        errorCount++;
+    }
+
+    if(attraction->rideBeginMaxWaitTime_ms > attraction->duration_ms ){
+        printError("rideBeginMaxWaitTime_ms >  attraction->duration_ms ");
+        errorCount++;
+    }
+
+    if(attraction->attractionRideMinLoad > attraction->rideCapacity){
+        printError("Attraction attractionRideMinLoad > rideCapacity");
+        errorCount++;
+    }
+
+    ListItem* item;
+    ForEach_LinkedList((&(attraction->scheduleList)),item){
+        
+        if( verifySchedule((Schedule*)(item->value),simulationConf) > 0){
+            printf("\033[1;31mInvalid schedule in attraction %s\033[1;0m\n",attraction->name);
+            errorCount += 1;
+        }
+    }
+
+    return errorCount;
+}
+
+int verifyPark(Park* park,SimulationConf* simulationConf){
+
+    int errorCount = 0;
+    if(park->parkCapacity < 0){
+        printError("Park Capacity can not be < 0.");
+        errorCount++;
+    }
+    
+    if(park->scheduleList.length == 0){
+        printError("Park as no schedules");
+        errorCount++;
+    }else{
+        ListItem* item;
+        ForEach_LinkedList((&(park->scheduleList)),item){
+            if( verifySchedule((Schedule*)(item->value),simulationConf) > 0){
+            printError("Invalid schedule in park");
+            errorCount += 1;
+        }
+        }
+    }
+
+    if(park->attractions.length == 0){
+        printError("Park as no attractions");
+        errorCount++;
+    }else{
+
+        ListItem* item;
+        ForEach_LinkedList((&(park->attractions)),item){
+            errorCount += verifyAttraction((Attraction*)(item->value),simulationConf);
+        }
+        
+    }
+
+    return errorCount;
+}
+
+int verifySimulationConf(SimulationConf* simulationConf){
+
+    int errorCount = 0;
+    if(simulationConf->userMaxAge < 0 || simulationConf->userMinAge < 0){
+        printError("Values of userMaxAge or userMinAge are invalid");
+        errorCount++;
+    }
+
+    if(simulationConf->userMaxAge < simulationConf->userMinAge){
+        printError("Value of userMaxAge < userMaxAge.");
+        errorCount++;
+    }
+
+    if(simulationConf->dayLength_s <= 0){
+        printError("Value of dayLength_s <= 0.");
+        errorCount++;
+    }
+
+    if(simulationConf->numberOfDaysToSimulate <= 0){
+        printError("Value of numberOfDaysToSimulate <= 0.");
+        errorCount++;
+    }
+
+    if(simulationConf->averageClientArriveTime_ms <= 0){
+        printError("Value of averageClientArriveTime_ms <= 0.");
+        errorCount++;
+    }
+
+    if(simulationConf->toleranceClientArriveTime_ms <= 0){
+        printError("Value of averageClientArriveTime_ms <= 0.");
+        errorCount++;
+    }
+
+    if(simulationConf->userMinWaitingTime_ms < 0 || simulationConf->userLeaveChance_percentage < 0 || simulationConf->userMinWaitingTime_ms < 0){
+        printError("One or more userSetings are < 0.");
+        errorCount++;
+    }
+
+    return errorCount;
+}
+
+/**
+ * The function verifies the loaded values of a park and simulation configuration.
+ * 
+ * @param park A pointer to a Park struct, which contains information about the park.
+ * @param simulationConf A pointer to a structure that contains the configuration settings for the
+ * simulation.
+ * 
+ * @return an integer value.
+ */
+int verifyLoadedValues(Park* park,SimulationConf* simulationConf){
+
+    int error = 0;
+    error = verifySimulationConf(simulationConf);
+    if(error > 0) return error;
+
+    error += verifyPark(park,simulationConf);
+
+    return error;
 }

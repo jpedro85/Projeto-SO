@@ -8,6 +8,7 @@ void printInfo(char* info);
 void printError(char* error);
 void printFatalError(char* error);
 void printWarning(char* warning);
+void printWithColor(int r ,int g ,int b , char* msg);
 void printSuccess(char* success);
 void printCursor();
 void resetColor();

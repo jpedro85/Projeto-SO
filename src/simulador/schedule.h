@@ -21,4 +21,8 @@ void* scheduleOpenCloseActiveWait( void* param );
 void scheduleOpenCloseBlocking2(LinkedList* scheduleList, CallFunction openFunction, CallFunction closeFunction, void* paramsToFunctions);
 void* scheduleOpenCloseBlocking( void* param );
 
+void activeWaitEndOfDay(int day);
+
+void activeWaitUntilEndOfDay(int day);
+
 #endif
