@@ -80,6 +80,7 @@ void createRandomClient(User *user)
     int hasVipPass = rand() % 100 < 20 ? 1 : 0;
     user->vipPass = hasVipPass;
     user->currentAttraction=-1;
+    user->state=IN_PARK;
 }
 
 /**
@@ -133,7 +134,7 @@ void removeClient(User *client)
  */
 int chooseAction()
 {
-    //TODO: Change Probabilities of each case
+    //TODO: Change Probabilities of each case. Use the conf values!!! (5=parkchance)
     if(user.currentAttraction!=-1){
         return (((rand() % 100) + 1) <= 20) ? LEAVE_ATTRACTION : STAY_AT_ATTRACTION;
     }
@@ -150,25 +151,26 @@ void chooseAttraction(User *client) {
     // If not it leaves the chooses another action
     if (!canClientBeOnAttraction(client, attractionChosen))
     {
-        // TODO: Uncomment
-        // EventInfo_UserEvent eventInfo;
-        // eventInfo.clientID = client->id;
-        // eventInfo.attractionName = attractionChosen->name;
-        // asyncCreateEvent_UserEvent(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_DENIED, sizeof(eventInfo), addMsgToQueue);
+        EventInfo_UserEvent eventInfo;
+        eventInfo.clientID = client->id;
+        eventInfo.attractionName = attractionChosen->name;
+        asyncCreateEvent_UserEvent(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_DENIED, sizeof(eventInfo), addMsgToQueue);
         
         return;
     }
     // After being on the first attraction
     if(client->currentAttraction!=-1){
         leaveAttraction(client, client->currentAttraction);
-        enterAttraction(client, attractionChosen);
     }
 
     // Call the function to enter the attraction
     enterAttraction(client, attractionChosen);
-
-    // Simulate the client's time on the attraction according to the config parameter
-    usleep(attractionChosen->duration_ms * 1000);
+//TODO: Do a while waiting to be the first in the line or chance to leave the waitingLine (after the min waiting time).
+//TODO: After this, he can enter the attraction.
+//TODO: After he joined the attraction (passed the semaphore), he may enter the ride.
+//TODO: Make a While when he is in the attraction to see if the attraction is still running (use tryreadlock). Before while, do print("*Whisle*").
+//TODO: To leave the attraction, change the user's state to IN_PARK. Always update user states, depending on where he is
+//TODO: Check if the events are funfating. 
 }
 
 

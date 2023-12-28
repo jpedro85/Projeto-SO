@@ -296,6 +296,8 @@ void enterAttraction(User *client, Attraction *attraction) {
 
     eventInfo.clientID = client->id;
     eventInfo.attractionName = attraction->name;
+
+    client->state=IN_WAITING_LINE;
     asyncCreateEvent_AttractionRideEvent(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),eventInfo,ENTERING_WAITING_LINE,5,addMsgToQueue);
 }
 
@@ -314,6 +316,8 @@ void enterAttractionRide(User *client, Attraction *attraction){
     EventInfo_UserRideEvent eventInfo;
     eventInfo.clientID = client->id;
     eventInfo.attractionName = attraction->name;
+
+    client->state=IN_RIDE;
 
     readlock(&(attraction->rideCounter_rwlock_t), "rideCounter_rwlock_t");
     eventInfo.rideNumber=attraction->rideCounter;
@@ -345,6 +349,8 @@ void leaveAttraction_waitingLine(User *client, Attraction *attraction) {
     eventInfo.clientID = client->id;
     eventInfo.attractionName = attraction->name;
 
+    client->state=IN_PARK;
+
     asyncCreateEvent_AttractionRideEvent(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),eventInfo,LEAVING_WAITING_LINE,5,addMsgToQueue);
 }
 
@@ -355,7 +361,8 @@ void leaveAttraction_ride(User *client, Attraction *attraction) {
     eventInfo.clientID = client->id;
     eventInfo.attractionName = attraction->name;
 
-    
+    client->state=IN_PARK;
+
     lockMutex(&(attraction->currentAttendance_mut_t), "currentAttendance_mut_t");
     attraction->currentAttendance--;
     unlockMutex(&(attraction->currentAttendance_mut_t), "currentAttendance_mut_t");
