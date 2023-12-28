@@ -43,9 +43,12 @@ void beginRide(Attraction* attraction ){
 
     writelock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
     attraction->isRunning = true;
+    rwlock_unlock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
+
+    writelock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
     attraction->rideCounter++;
     eventInfo.rideNumber = attraction->rideCounter;
-    rwlock_unlock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
+    rwlock_unlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
 
     eventInfo.usersInRide = currentAttendance;
     //TODO:Maybe a mutex is needed to check list.length 
@@ -71,8 +74,11 @@ void endRide(Attraction* attraction ){
 
     writelock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
     attraction->isRunning = false;
-    eventInfo.rideNumber = attraction->rideCounter;
     rwlock_unlock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
+
+    readlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
+    eventInfo.rideNumber = attraction->rideCounter;
+    rwlock_unlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
 
     asyncCreateEvent_AttractionRideEvent(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),eventInfo,RIDE_ENDED,5,addMsgToQueue);
 }
@@ -111,9 +117,12 @@ void* startRideCycle(void* param ){
 
         writelock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
         attraction->isRunning = true;
+        rwlock_unlock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
+
+        writelock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
         attraction->rideCounter++;
         eventInfo.rideNumber = attraction->rideCounter;
-        rwlock_unlock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
+        rwlock_unlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
 
         //TODO:Maybe a problem here Delay when trying to get lock
         lockMutex(&(attraction->currentAttendance_mut_t),"currentAttendance_mut_t");
@@ -143,8 +152,11 @@ void stopRideCycle(Attraction* attraction ){
 
         writelock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
         attraction->isRunning = false;
-        eventInfo.rideNumber = attraction->rideCounter;
         rwlock_unlock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
+
+        readlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
+        eventInfo.rideNumber = attraction->rideCounter;
+        rwlock_unlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
 
         //TODO:Maybe a problem here Delay when trying to get lock
         lockMutex(&(attraction->currentAttendance_mut_t),"currentAttendance_mut_t");
@@ -169,8 +181,11 @@ void stopRideCycle(Attraction* attraction ){
 
             writelock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
             attraction->isRunning = false;
-            eventInfo.rideNumber = attraction->rideCounter;
             rwlock_unlock(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
+
+            readlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
+            eventInfo.rideNumber = attraction->rideCounter;
+            rwlock_unlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
 
             //TODO:Maybe a problem here Delay when trying to get lock
             lockMutex(&(attraction->currentAttendance_mut_t),"currentAttendance_mut_t");
@@ -199,7 +214,9 @@ void openAttraction(void* attractionP){
     attraction->isOpen = true;
     rwlock_unlock(&(attraction->isOpen_rwlock_t),"isOpen_rwlock_t");
 
+    writelock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
     attraction->rideCounter = 0;
+    rwlock_unlock(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
 
     EventInfo_AttractionEvent eventInfo;
     eventInfo.attractionName = attraction->name;
@@ -235,6 +252,7 @@ void startAttraction(void* attractionP){
     //init the lock;
     rwlock_init(&(attraction->isOpen_rwlock_t),"isOpen_rwlock_t");
     rwlock_init(&(attraction->isRunning_rwlock_t),"isRunning_rwlock_t");
+    rwlock_init(&(attraction->rideCounter_rwlock_t),"rideCounter_rwlock_t");
 
     attraction->isRunning = false;
     attraction->currentAttendance = 0;
@@ -281,6 +299,30 @@ void enterAttraction(User *client, Attraction *attraction) {
     asyncCreateEvent_AttractionRideEvent(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),eventInfo,ENTERING_WAITING_LINE,5,addMsgToQueue);
 }
 
+void enterAttractionRide(User *client, Attraction *attraction){
+    printSuccess("User entered ride");
+
+    lockMutex(&(attraction->waitingLine_mutex_t),"waitingLine_mutex_t")
+    //TODO: Verify requirements if all users that enter the ride are in the first position of the list. Before calling wait at the semaphore.
+    removeItemByIndex_LinkedList(&(attraction->waitingLine),0);
+    unlockMutex(&(attraction->waitingLine_mutex_t),"waitingLine_mutex_t")
+
+    lockMutex(&(attraction->currentAttendance_mut_t), "currentAttendance_mut_t");
+    attraction->currentAttendance++;
+    unlockMutex(&(attraction->currentAttendance_mut_t), "currentAttendance_mut_t");
+
+    EventInfo_UserRideEvent eventInfo;
+    eventInfo.clientID = client->id;
+    eventInfo.attractionName = attraction->name;
+
+    readlock(&(attraction->rideCounter_rwlock_t), "rideCounter_rwlock_t");
+    eventInfo.rideNumber=attraction->rideCounter;
+    rwlock_unlock(&(attraction->rideCounter_rwlock_t), "rideCounter_rwlock_t");
+
+    asyncCreateEvent_UserEventRide(getCurrentSimulationDate(startTime, simulationConf.dayLength_s),eventInfo, ENTERING_RIDE, 5, addMsgToQueue);
+
+}
+
 void leaveAttraction_waitingLine(User *client, Attraction *attraction) {
 
     EventInfo_UserEventWaitingLine eventInfo;
@@ -306,8 +348,24 @@ void leaveAttraction_waitingLine(User *client, Attraction *attraction) {
     asyncCreateEvent_AttractionRideEvent(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),eventInfo,LEAVING_WAITING_LINE,5,addMsgToQueue);
 }
 
-void leaveAttraction_ride(){
-    //TODO: leave ride;
+void leaveAttraction_ride(User *client, Attraction *attraction) {
+    printSuccess("User leaving ride");
+
+    EventInfo_UserRideEvent eventInfo;
+    eventInfo.clientID = client->id;
+    eventInfo.attractionName = attraction->name;
+
+    
+    lockMutex(&(attraction->currentAttendance_mut_t), "currentAttendance_mut_t");
+    attraction->currentAttendance--;
+    unlockMutex(&(attraction->currentAttendance_mut_t), "currentAttendance_mut_t");
+
+    readlock(&(attraction->rideCounter_rwlock_t), "rideCounter_rwlock_t");
+    eventInfo.rideNumber=attraction->rideCounter;
+    rwlock_unlock(&(attraction->rideCounter_rwlock_t), "rideCounter_rwlock_t");
+
+    asyncCreateEvent_UserEventRide(getCurrentSimulationDate(startTime, simulationConf.dayLength_s),eventInfo, LEAVING_RIDE, 5, addMsgToQueue);
+
 }
 
 /**

@@ -40,8 +40,8 @@ typedef enum {
     ENTERING_WAITING_LINE, // clientID, attractionName and line size
     LEAVING_WAITING_LINE, // clientID, attractionName and line Size
     USING_VIP, // clientID and attractionName
-    ENTERING_RIDE, // clientID and attractionName
-    LEAVING_RIDE, // clientID and attractionName 
+    ENTERING_RIDE, // clientID, attractionName and rideNumber
+    LEAVING_RIDE, // clientID, attractionName and rideNumber
     ENTERING_DENIED, // clientID and attractionName
     LEAVING_ATTRACTION, // clientID and attractionName
 }UserEvent;
@@ -137,18 +137,28 @@ typedef struct {
     int lineSize;
 } EventInfo_UserEventWaitingLine;
 
+typedef struct {
+    int rideNumber;
+    int clientID;
+    char* attractionName;
+} EventInfo_UserRideEvent;
+
 void createEventInfoFor_UserEvent(Event* event, EventInfo_UserEvent info);
 void createEventInfoFor_UserEventPark(Event* event, EventInfo_UserEventPark info);
 void createEventInfoFor_UserEventWaitingLine(Event *event, EventInfo_UserEventWaitingLine info);
+void createEventInfoFor_UserRideEvent(Event *event, EventInfo_UserRideEvent info);
 EventInfo_UserEvent getInfoEvent_UserEvent(Event* event);
 EventInfo_UserEventPark getInfoEvent_UserEventPark(Event *event);
 EventInfo_UserEventWaitingLine getInfoEvent_UserEventWaitingLine(Event *event);
+EventInfo_UserRideEvent getInfoEvent_UserRideEvent(Event *event);
 void asyncCreateEvent_UserEvent(Date date, EventInfo_UserEvent eventInfo,int userEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
 void asyncCreateEvent_UserEventPark(Date date, EventInfo_UserEventPark eventInfo,int userEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
 void asyncCreateEvent_UserEventWaitingLine(Date date, EventInfo_UserEventWaitingLine eventInfo,int userEventWaitingLine,int eventInfo_estimatedSize, EventMsgHandler handler);
+void asyncCreateEvent_UserRideEvent(Date date, EventInfo_UserRideEvent eventInfo,int userRideEvent,int eventInfo_estimatedSize, EventMsgHandler handler);
 char* extractEvent_UserEvent(Event* event);
 char* extractEvent_UserEventPark(Event* event);
 char* extractEvent_UserEventWaitingLine(Event* event);
+char* extractEvent_UserRideEvent(Event* event);
 
 
 #endif

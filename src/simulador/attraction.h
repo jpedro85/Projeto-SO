@@ -20,6 +20,8 @@ typedef struct {
     int attractionRideMinLoad;
     int rideBeginMaxWaitTime_ms;
     int rideCounter;
+
+    pthread_rwlock_t rideCounter_rwlock_t;
     
     bool isOpen;
     pthread_rwlock_t isOpen_rwlock_t;
@@ -43,5 +45,6 @@ void startAttractionSimulation();
 
 void enterAttraction(User *client, Attraction *attraction);
 void leaveAttraction(User *client, Attraction *attraction);
+void enterAttractionRide(User *client, Attraction *attraction);
 
 #endif

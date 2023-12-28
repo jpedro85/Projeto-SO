@@ -594,6 +594,16 @@ void general_createEventInfoFor_UserEventWaitingLine(CreateEventInfo_Params para
     createEventInfoFor_UserEventWaitingLine(param.event, *((EventInfo_UserEventWaitingLine*)(param.eventInfo)) );
 }
 
+void createEventInfoFor_UserRideEvent(Event *event, EventInfo_UserRideEvent info){
+    event->eventInfoJson = cJSON_CreateObject();
+    cJSON_AddNumberToObject(event->eventInfoJson,"clientID",info.clientID);
+    cJSON_AddStringToObject(event->eventInfoJson,"attractionName",info.attractionName);
+    cJSON_AddNumberToObject(event->eventInfoJson,"rideNumber",info.rideNumber);
+}
+void general_createEventInfoFor_UserRideEvent(CreateEventInfo_Params param){
+    createEventInfoFor_UserRideEvent(param.event, *((EventInfo_UserRideEvent*)(param.eventInfo)) );
+}
+
 EventInfo_UserEvent getInfoEvent_UserEvent(Event *event)
 {
 
@@ -638,6 +648,22 @@ EventInfo_UserEventWaitingLine getInfoEvent_UserEventWaitingLine(Event *event)
 
     if (error >0)
         printFatalError("Wrong event type, eventInfoJson type is not EventInfo_UserEventWaitingLine.");
+    
+    return eventInfo;
+}
+
+
+EventInfo_UserRideEvent getInfoEvent_UserRideEvent(Event *event){
+    if (!event->eventInfoJson)
+        printFatalError("Wrong event type not UserRideEvent, eventInfoJson is not defined.");
+    
+    EventInfo_UserRideEvent eventInfo;
+    int error = loadItemNumber2(event->eventInfoJson,"clientID", &eventInfo.clientID);
+    error += loadItemString2(event->eventInfoJson,"attractionName", &eventInfo.attractionName);
+    error += loadItemNumber2(event->eventInfoJson,"rideNumber", &eventInfo.rideNumber);
+
+    if (error >0)
+        printFatalError("Wrong event type, eventInfoJson type is not EventInfo_UserRideEvent.");
     
     return eventInfo;
 }
@@ -703,6 +729,22 @@ void asyncCreateEvent_UserEventWaitingLine(Date date, EventInfo_UserEventWaiting
     createDetachThread(asyncCreateEvent,parameters);
 }
 
+void asyncCreateEvent_UserRideEvent(Date date, EventInfo_UserRideEvent eventInfo,int userRideEvent,int eventInfo_estimatedSize, EventMsgHandler handler){
+    CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
+                                            USER_EVENT,
+                                            UserRideEvent,
+                                            date,
+                                            general_createEventInfoFor_UserRideEvent,
+                                            eventInfo_estimatedSize,
+                                            handler
+                                        );
+
+    EventInfo_UserRideEvent* newEventInfo = (EventInfo_UserRideEvent*)malloc(sizeof(EventInfo_UserRideEvent));
+    *newEventInfo = eventInfo;
+    parameters->eventInfo = newEventInfo;
+    createDetachThread(asyncCreateEvent,parameters);
+}
+
 char *extractEvent_UserEvent(Event *event)
 {
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(event);
@@ -727,6 +769,13 @@ char *extractEvent_UserEventWaitingLine(Event *event)
     char* eventInfoString = "";
     asprintf(&eventInfoString,"Id: %d Attraction: %s LineSize: %d", eventInfo.clientID, eventInfo.attractionName, eventInfo.lineSize); 
 //    printf("%s",eventInfoString);
+    return eventInfoString;
+}
+
+char* extractEvent_UserRideEvent(Event* event){
+    EventInfo_UserRideEvent eventInfo = getInfoEvent_UserRideEvent(event);
+    char* eventInfoString = "";
+    asprintf(&eventInfoString,"Id: %d Attraction: %s rideNumber: %d", eventInfo.clientID, eventInfo.attractionName, eventInfo.rideNumber); 
     return eventInfoString;
 }
 
