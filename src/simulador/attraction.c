@@ -424,7 +424,6 @@ void leaveAttraction(User *client, Attraction *attraction)
     }
     else if (client->state == IN_RIDE)
     {
-        printFatalError("ENTROU NA RIDE CARALHO!!");
         leaveAttraction_ride(client, attraction);
     }
     else

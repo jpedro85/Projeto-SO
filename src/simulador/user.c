@@ -151,7 +151,7 @@ void *simulateUserActions(void *client) {
             leaveAttraction(parsedClient, parsedClient->currentAttraction);
         }
         
-        
+        usleep((simulationConf.dayLength_ms/24/60)*5000);
     }
 }
 
@@ -205,7 +205,7 @@ int chooseAction(User *user)
     switch(user->state){
         case IN_RIDE:
             if(user->currentAttraction->duration_ms==0){
-                return (((rand() % 100) + 1) <= 20) ? LEAVE_RIDE : STAY_AT_RIDE;
+                return (((rand() % 100) + 1) <= 1) ? LEAVE_RIDE : STAY_AT_RIDE;
             }
             else{
                 return WAIT_FOR_END_RIDE;
