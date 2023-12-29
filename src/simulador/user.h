@@ -5,12 +5,13 @@
 #include <stdbool.h>
 #include "attraction.h"
 
-typedef struct
+typedef struct Attraction Attraction;
+typedef struct User
 {
     int id;
     int age;
     int vipPass;
-    int currentAttraction; // Assuming pthread_t is the type for a thread
+    Attraction* currentAttraction;
     int state;
 } User;
 
@@ -25,10 +26,10 @@ void* createParkClients();
 void createParkClient(int waitTime);
 void createRandomClient(User *user);
 void *simulateUserActions(void *client);
-int chooseAction();
 void chooseAttraction(User *client);
 void removeClient(User *client);
 bool canClientBeOnAttraction(User *client, Attraction *attraction);
+void startClientSimulation();
 
 
 #endif

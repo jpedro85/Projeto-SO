@@ -28,9 +28,8 @@ char* userEventNames[] = {
     "User Used Vip",
     "User Entered Ride", 
     "User Left Ride",
-    "User Entered Attraction",
-    "User Left Attraction",
-    "User Entering Denied"
+    "User Entering Denied",
+    "User Left Attraction"
 };
 
 char* simulatorEventNames[] = { 
@@ -732,7 +731,7 @@ void asyncCreateEvent_UserEventWaitingLine(Date date, EventInfo_UserEventWaiting
 void asyncCreateEvent_UserRideEvent(Date date, EventInfo_UserRideEvent eventInfo,int userRideEvent,int eventInfo_estimatedSize, EventMsgHandler handler){
     CreateEvent_AsyncParam* parameters = create_CreateEvent_AsyncParam(
                                             USER_EVENT,
-                                            UserRideEvent,
+                                            userRideEvent,
                                             date,
                                             general_createEventInfoFor_UserRideEvent,
                                             eventInfo_estimatedSize,

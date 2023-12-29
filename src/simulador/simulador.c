@@ -64,6 +64,7 @@ void startSimulation()
     rwlock_init(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
     
     startParkSimulation();
+    startClientSimulation();
     startAttractionSimulation();
 
     writelock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
@@ -89,17 +90,6 @@ void startSimulation()
     //wait for last sends ?
     sleep(20);
     //TODO:wait last mesg on sever insted of sleep
-
-     //initParkSemaphores();
-
-    // int threadError = pthread_create(&simulationStartThread, NULL, createParkClients, NULL);
-    // if (threadError == -1)
-    // {
-    //     printFatalError("Could not start the simulation");
-    // }
-    
-    // pthread_join(simulationStartThread, 0);
-    
 }
 void stopSimulation()
 {

@@ -24,5 +24,6 @@ void create_DetachThread(ThreadFunction func , void* parameters ,char* errorMsg)
 void semInit(sem_t* sem, unsigned int startValue, char* name);
 void semPost(sem_t *sem, char* name);
 void semWait(sem_t *sem, char* name);
+int trySemWait(sem_t *sem, char* name);
 
 #endif

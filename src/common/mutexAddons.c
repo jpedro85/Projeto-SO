@@ -209,3 +209,14 @@ void semWait(sem_t *sem, char* name){
         printFatalError("");
     }
 }
+
+int trySemWait(sem_t *sem, char* name){
+    int error = 0;
+    error = sem_trywait(sem);
+    if(error != EAGAIN && error != 0){
+        printf("\033[1;31m Can not tryWait at %s Semaphore\033[1;0m",name); 
+        printFatalError("");
+        return -1;
+    }else
+        return error;
+}

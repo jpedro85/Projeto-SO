@@ -8,7 +8,8 @@
 #include "../common/linked_list.h"
 #include "user.h"
 
-typedef struct {
+typedef struct User User;
+typedef struct Attraction {
 
     char* name ;
     int minAge, maxAge ;
@@ -46,5 +47,6 @@ void startAttractionSimulation();
 void enterAttraction(User *client, Attraction *attraction);
 void leaveAttraction(User *client, Attraction *attraction);
 void enterAttractionRide(User *client, Attraction *attraction);
+int isAttractionRunning(Attraction* attraction);
 
 #endif

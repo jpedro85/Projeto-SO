@@ -50,11 +50,11 @@ void simulatorEvents_handler(Event event){
             break;
         case SIMULATION_ERROR:
             //TODO: erroMsg
-            printWarning("not implemented yet");
+            printWarning("not implemented yet1");
             break;
         case SIMULATION_MESSAGE:
             //TODO: simulatorMSG
-            printWarning("not implemented yet");
+            printWarning("not implemented yet2");
             break;
         default:
             printError("Wrong SIMULATOR_EVENT type.");
