@@ -16,8 +16,6 @@
 #include "globals.h"
 
 int id = 0;
-pthread_t parkClientThread;
-
 typedef enum{
     LEAVE_PARK,
     STAY_AT_PARK,
@@ -35,12 +33,13 @@ void *createParkClients()
     printWarning("server: started creating users.");
     while (true)
     {
-        sem_wait(&(park.parkVacancy_sem_t));
-
         // Randomizes arrival time between the clients
         int userWaitingTime = rand() % (simulationConf.averageClientArriveTime_ms - simulationConf.toleranceClientArriveTime_ms) + simulationConf.toleranceClientArriveTime_ms;
-
-        createParkClient(userWaitingTime);
+        // Converting waitTime thats in ms to microsecond as usleep works with that unit of time
+        int waitTimeToMicrosecond = userWaitingTime * 1000;
+        // Simulating the waiting time with usleep function
+        usleep(waitTimeToMicrosecond);
+        createParkClient();
     }
 }
 
@@ -50,17 +49,13 @@ void *createParkClients()
  * @param waitTime The waitTime parameter is the amount of time in milliseconds that the function
  * should wait before creating a new client.
  */
-void createParkClient(int waitTime)
+void createParkClient()
 {
-    // Converting waitTime thats in ms to microsecond as usleep works with that unit of time
-    int waitTimeToMicrosecond = waitTime * 1000;
-    // Simulating the waiting time with usleep function
-    usleep(waitTimeToMicrosecond);
 
     // Creating the new Client with random values
     User *newUser = (User *)malloc(sizeof(User));
     createRandomClient(newUser);
-    pthread_create(&parkClientThread, NULL, simulateUserActions, newUser);
+    pthread_create(&(newUser->userThread), NULL, simulateUserActions, newUser);
 
     // Event userCreated = createEvent(SIMULATOR_EVENT,SIMULATION_USER_CREATED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
     EvenInfo_SimulationUserCreated userInfo;
@@ -89,8 +84,27 @@ void createRandomClient(User *user)
     user->vipPass = hasVipPass;
     user->currentAttraction=NULL;
     user->state=IN_PARK;
+    Date date = getCurrentSimulationDate(startTime, simulationConf.dayLength_s);
+    user->dayCreated=date.day;
 }
-
+void enterPark(){
+    int parkOpen=0;
+    while(true){
+        semWait(&(park.parkVacancy_sem_t),"parkVacancy_sem_t");
+        readlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+        parkOpen=park.isOpen;
+        rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+        if(parkOpen){
+            EventInfo_UserEventPark eventInfo;
+            eventInfo.clientID = parsedClient->id;
+            asyncCreateEvent_UserEventPark(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_PARK, sizeof(eventInfo), addMsgToQueue);
+            return;
+        }
+        else{
+            semPost(&(park.parkVacancy_sem_t),"parkVacancy_sem_t");
+        }
+    }
+}
 /**
  * The function simulates user actions by either choosing an attraction or removing the client from the
  * park.
@@ -102,17 +116,15 @@ void *simulateUserActions(void *client) {
     
     User *parsedClient = (User *)client;
 
-    EventInfo_UserEventPark eventInfo;
-    eventInfo.clientID = parsedClient->id;
-    asyncCreateEvent_UserEventPark(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_PARK, sizeof(eventInfo), addMsgToQueue);
-    
+    enterPark();
 
     while (true)
     {
         // Randomizing the client action of whether wants to continue on the park or leave
         int clientChoice = chooseAction(parsedClient);
+
         printf("Client Choice: %d",clientChoice);
-        //TODO: Perguntar ao ricardo se o usleep é suficiente para ele esperar um certo tempo para voltar a decidir se ele quer sair
+
         // Checking the action that was choosen
         if (clientChoice == STAY_AT_PARK){
             chooseAttraction(parsedClient);
@@ -136,7 +148,8 @@ void *simulateUserActions(void *client) {
         }
 
         else if(clientChoice == STAY_AT_RIDE){
-            printf("WHISLE!!!");
+            //printf("WHISLE!!!");
+            sleep(1);
         }
         else if(clientChoice == LEAVE_RIDE){
             leaveAttraction(parsedClient, parsedClient->currentAttraction);
@@ -151,7 +164,7 @@ void *simulateUserActions(void *client) {
             leaveAttraction(parsedClient, parsedClient->currentAttraction);
         }
         
-        usleep((simulationConf.dayLength_ms/24/60)*5000);
+        usleep((simulationConf.dayLength_ms/24/60)*2000);
     }
 }
 
@@ -176,10 +189,12 @@ void removeClient(User *client)
  */
 int chooseAction(User *user)
 {
+    //sleep(1);
     //TODO: Change Probabilities of each case. Use the conf values!!! (5=parkchance) (done)
     int parkIsOpen=0;
     readlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
     parkIsOpen=park.isOpen;
+    printf("Park Status: %d",parkIsOpen);
     rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
     
     int attractionIsOpen=-1;
@@ -189,16 +204,17 @@ int chooseAction(User *user)
         rwlock_unlock(&(user->currentAttraction->isOpen_rwlock_t),"isOpen_rwlock_t");
 
         if(!attractionIsOpen){
-            if(!parkIsOpen){
-                leaveAttraction(user,user->currentAttraction);
-            }
-            else{
-                return LEAVE_ATTRACTION;
-            }
+            return LEAVE_ATTRACTION;
         }
     }
-    if(!parkIsOpen){         
-        removeClient(user);        
+    if(!parkIsOpen){
+        removeClient(user);  
+    }
+
+    Date date= getCurrentSimulationDate(startTime, simulationConf.dayLength_s);
+    printf("ESTE PANELEIRO FOI FEITO NO dia %d %d", user->dayCreated, date.day);
+    if(user->dayCreated<date.day){
+        removeClient(user);
     }
 
     printf("Current State: %d",user->state);
@@ -242,7 +258,6 @@ void chooseAttraction(User *client) {
     // If not it leaves the chooses another action
     if (!canClientBeOnAttraction(client, attractionChosen))
     {
-        
         EventInfo_UserEvent eventInfo;
         eventInfo.clientID = client->id;
         eventInfo.attractionName = attractionChosen->name;
@@ -256,7 +271,6 @@ void chooseAttraction(User *client) {
     else{
         // Call the function to enter the attraction
         enterAttraction(client, attractionChosen);
-        usleep(simulationConf.userMinWaitingTime_ms*1000);
     }
 //TODO: Do a while waiting to be the first in the line or chance to leave the waitingLine (after the min waiting time). (supostamente done)
 //TODO: After this, he can enter the attraction. (done)

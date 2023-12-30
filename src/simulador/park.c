@@ -3,6 +3,7 @@
 
 #include "globals.h"
 #include "schedule.h"
+#include "user.h"
 #include "socketServer/socketServer.h"
 #include "../common/mutexAddons.h"
 #include "../common/consoleAddons.h"
@@ -34,13 +35,20 @@ void openPark(void* param){
  * In this case, it is not used in the function and can be ignored.
  */
 void closePark(void* param){
-    
+    //TODO: Cancel thread and unlock all mutexes
     writelock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
     park.isOpen = false;
     rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
 
     printOption("closePark called");
     asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_CLOSED,addMsgToQueue);
+
+    ListItem* clientItem = NULL;
+    User* client = NULL;
+    ForEach_LinkedList(&(park.clientsInPark),clientItem){
+        client=(User*) (clientItem->value);
+        removeClient(client);
+    }
 }
 
 /**
@@ -49,6 +57,8 @@ void closePark(void* param){
 void startPark(){
     semInit(&(park.parkVacancy_sem_t),park.parkCapacity,"parkVacancy_sem_t");
     park.isOpen = false;
+    mutex_init(&(park.userList_mutex_t),"userList_mutex_t");
+    initialize_LinkedList(&(park.clientsInPark));
 }
 
 /**
