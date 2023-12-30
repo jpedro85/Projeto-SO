@@ -36,7 +36,7 @@ run-monitor:
 	$(MONITOR_OBJ)
 
 run-simulador:
-	$(SIMULADOR_OBJ)
+	$(SIMULADOR_OBJ) $(FILE)
 
 clean:
 	rm -f $(BUILD_DIR)/*
