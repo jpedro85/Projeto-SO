@@ -36,8 +36,7 @@ void beginRide(Attraction *attraction)
         // TODO:currentAttendance > 0 ADD (not added because of tests)
     } while (attraction->isOpen && currentAttendance < attraction->attractionRideMinLoad && getCurrentTime_ms(startRideTime) <= attraction->rideBeginMaxWaitTime_ms);
 
-    // if(attraction->isOpen){
-    // }
+
     printSuccess("ride Began");
     EventInfo_AttractionRideEvent eventInfo;
     eventInfo.attractionName = attraction->name;
