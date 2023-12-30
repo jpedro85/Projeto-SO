@@ -90,7 +90,6 @@ void startSimulation()
     
     //wait for last sends ?
     sleep(20);
-    //TODO:wait last mesg on sever insted of sleep
 }
 void stopSimulation()
 {
