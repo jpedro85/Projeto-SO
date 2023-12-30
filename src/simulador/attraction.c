@@ -374,6 +374,8 @@ void enterAttraction(User *client, Attraction *attraction)
     client->state = IN_WAITING_LINE;
     client->currentAttraction = attraction;
     asyncCreateEvent_UserEventWaitingLine(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_WAITING_LINE, 5, addMsgToQueue);
+    
+    usleep((simulationConf.dayLength_ms/24/60)*5000);
 }
 
 void enterAttractionRide(User *client, Attraction *attraction)
