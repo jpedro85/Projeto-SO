@@ -26,7 +26,7 @@ typedef enum{
 
 
 void* createParkClients();
-void createParkClient(int waitTime);
+void createParkClient();
 void createRandomClient(User *user);
 void *simulateUserActions(void *client);
 void chooseAttraction(User *client);

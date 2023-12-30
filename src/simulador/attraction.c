@@ -131,12 +131,12 @@ void *startRideCycle(void *param)
         eventInfo.rideNumber = attraction->rideCounter;
         rwlock_unlock(&(attraction->rideCounter_rwlock_t), "rideCounter_rwlock_t");
 
-        // TODO:Maybe a problem here Delay when trying to get lock
+        
         lockMutex(&(attraction->currentAttendance_mut_t), "currentAttendance_mut_t");
         eventInfo.usersInRide = attraction->currentAttendance;
         unlockMutex(&(attraction->currentAttendance_mut_t), "currentAttendance_mut_t");
 
-        // TODO:Maybe a mutex is needed to check list.length
+  
         eventInfo.usersWaiting = attraction->waitingLine.length;
         asyncCreateEvent_AttractionRideEvent(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, RIDE_STARTED, 5, addMsgToQueue);
     }
@@ -215,7 +215,14 @@ void stopRideCycle(Attraction *attraction)
 
 void openAttraction(void *attractionP)
 {
-
+    int parkOp=0;
+    do
+    {
+        readlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+        parkOp=park.isOpen;
+        rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+    } while (!parkOp);
+    
     printWarning("openAttraction called");
 
     Attraction *attraction = (Attraction *)attractionP;
@@ -302,10 +309,64 @@ void enterAttraction(User *client, Attraction *attraction)
 {
     EventInfo_UserEventWaitingLine eventInfo;
 
-    lockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
-    addValue_LinkedList(&(attraction->waitingLine), client);
-    eventInfo.lineSize = attraction->waitingLine.length;
-    unlockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+    if(client->vipPass){
+        User* currentClient;
+        ListItem* currentAux;
+        ListItem* previousAux;
+        ListItem* clientItemAux;
+
+        EventInfo_UserEvent eventInfoVip;
+        
+        lockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+        currentAux=attraction->waitingLine.first;
+        previousAux=NULL;
+        if(currentAux==NULL){
+            addValue_LinkedList(&(attraction->waitingLine), client);
+        }
+        else{
+            int added=0;
+            while(currentAux!=NULL){
+                currentClient=(User*) (currentAux->value);
+                if(!currentClient->vipPass && previousAux==NULL){
+                    
+                    clientItemAux=attraction->waitingLine.first;
+                    attraction->waitingLine.first=(ListItem*) malloc(sizeof(ListItem));
+                    attraction->waitingLine.first->next=clientItemAux;
+                    attraction->waitingLine.first->value=client;
+                    attraction->waitingLine.length++;
+                    added=1;
+                    break;
+                }   
+                else if(!currentClient->vipPass){
+                    clientItemAux=previousAux;
+                    previousAux=(ListItem*) malloc(sizeof(ListItem));
+                    previousAux->next=clientItemAux;
+                    previousAux->value=client;
+                    attraction->waitingLine.length++;
+                    added=1;
+                    break;
+                }
+                previousAux=currentAux;
+                currentAux=currentAux->next;
+            }
+            if(!added){
+                addValue_LinkedList(&(attraction->waitingLine), client);
+            }
+        }
+
+        eventInfo.lineSize = attraction->waitingLine.length;
+        unlockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+        eventInfoVip.clientID=client->id;
+        eventInfoVip.attractionName=attraction->name;
+        asyncCreateEvent_UserEvent(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfoVip, USING_VIP, 5, addMsgToQueue);
+    }
+    else{
+        lockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+        addValue_LinkedList(&(attraction->waitingLine), client);
+        eventInfo.lineSize = attraction->waitingLine.length;
+        unlockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+    }
+
 
     eventInfo.clientID = client->id;
     eventInfo.attractionName = attraction->name;

@@ -42,13 +42,6 @@ void closePark(void* param){
 
     printOption("closePark called");
     asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_CLOSED,addMsgToQueue);
-
-    ListItem* clientItem = NULL;
-    User* client = NULL;
-    ForEach_LinkedList(&(park.clientsInPark),clientItem){
-        client=(User*) (clientItem->value);
-        removeClient(client);
-    }
 }
 
 /**
@@ -57,8 +50,6 @@ void closePark(void* param){
 void startPark(){
     semInit(&(park.parkVacancy_sem_t),park.parkCapacity,"parkVacancy_sem_t");
     park.isOpen = false;
-    mutex_init(&(park.userList_mutex_t),"userList_mutex_t");
-    initialize_LinkedList(&(park.clientsInPark));
 }
 
 /**

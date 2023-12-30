@@ -12,11 +12,9 @@ typedef struct {
     int parkCapacity;
     bool isOpen;
     pthread_rwlock_t parkIsOpen_rwlock_t;
-    pthread_mutex_t userList_mutex_t;
 
     LinkedList scheduleList;
     LinkedList attractions;
-    LinkedList clientsInPark;
 
     sem_t parkVacancy_sem_t;
 

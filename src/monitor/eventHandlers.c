@@ -229,7 +229,7 @@ void userEvent_LEAVING_WAITING_LINE_handler(Event event){
 
 void userEvent_ENTERING_RIDE_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEvent);
-    printWithColor(0,0,255,eventInString);
+    printWithColor(0,255,255,eventInString);
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
@@ -240,7 +240,7 @@ void userEvent_ENTERING_RIDE_handler(Event event){
 
 void userEvent_LEAVING_RIDE_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEvent);
-    printWithColor(0,0,255,eventInString);
+    printWithColor(0,255,255,eventInString);
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
