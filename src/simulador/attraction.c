@@ -36,8 +36,7 @@ void beginRide(Attraction *attraction)
         // TODO:currentAttendance > 0 ADD (not added because of tests)
     } while (attraction->isOpen && currentAttendance < attraction->attractionRideMinLoad && getCurrentTime_ms(startRideTime) <= attraction->rideBeginMaxWaitTime_ms);
 
-    // if(attraction->isOpen){
-    // }
+
     printSuccess("ride Began");
     EventInfo_AttractionRideEvent eventInfo;
     eventInfo.attractionName = attraction->name;
@@ -374,6 +373,8 @@ void enterAttraction(User *client, Attraction *attraction)
     client->state = IN_WAITING_LINE;
     client->currentAttraction = attraction;
     asyncCreateEvent_UserEventWaitingLine(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_WAITING_LINE, 5, addMsgToQueue);
+    
+    usleep((simulationConf.dayLength_ms/24/60)*5000);
 }
 
 void enterAttractionRide(User *client, Attraction *attraction)

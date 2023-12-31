@@ -38,7 +38,7 @@ void *createParkClients()
         // Converting waitTime thats in ms to microsecond as usleep works with that unit of time
         int waitTimeToMicrosecond = userWaitingTime * 1000;
         // Simulating the waiting time with usleep function
-        
+
         createParkClient();
         usleep(waitTimeToMicrosecond);
     }
@@ -82,7 +82,6 @@ void createRandomClient(User *user)
     user->id = id;
     id++;
     user->age = rand() % (simulationConf.userMaxAge - simulationConf.userMinAge) + simulationConf.userMinAge;
-    // TODO alter probability to have vip pass depending on configuration file (done)
     int hasVipPass = rand() % 100 < simulationConf.userHasVipPassChance_percentage ? 1 : 0;
     user->vipPass = hasVipPass;
     user->currentAttraction=NULL;
@@ -163,7 +162,6 @@ void *simulateUserActions(void *client) {
             } while (isRunning==EBUSY || (isRunning==1));
             leaveAttraction(parsedClient, parsedClient->currentAttraction);
         }
-        
         usleep((simulationConf.dayLength_ms/24/60)*5000);
     }
 }
@@ -244,7 +242,6 @@ void chooseAttraction(User *client) {
     int parkAttractionsCount = park.attractions.length;
     int attractionChosenIndex = rand() % parkAttractionsCount;
     Attraction *attractionChosen = (Attraction *)getValueByIndex_LInkedList(&(park.attractions), attractionChosenIndex);
-
     // If the client meets the requirements or not to enter the ride
     // If not it leaves the chooses another action
     int isAttractionOpened=0;
