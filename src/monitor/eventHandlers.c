@@ -1,14 +1,53 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "../common/events.h"
 #include "../common/consoleAddons.h"
 
+char *currentState;
+char *currentParkState ="Closed";
+int usersCreated=0;
+int usersInside = 0;
+int usersLeft = 0;
+int usersInWaitingLine = 0;
+int usersInRide = 0;
+int activeAttractions = 0;
+int activeRides = 0;
+int currentVIP = 0;
+int usersDenied = 0;
+
+void logParkState() {
+    FILE *file = fopen("relatorio.txt", "at");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    fseek(file, 0, SEEK_END); 
+
+    fprintf(file, "Current Simulation State: %s\n", currentState);
+    fprintf(file, "Current Park State: %s\n", currentParkState);
+    fprintf(file, "Number of created: %d\n", usersCreated);
+    fprintf(file, "Number of usages of VIP: %d\n", currentVIP);
+    fprintf(file, "Number of users inside the park: %d\n", usersInside);
+    fprintf(file, "Number of users in a waiting line: %d\n", usersInWaitingLine);
+    fprintf(file, "Number of users in a ride: %d\n", usersInRide);
+    fprintf(file, "Number of times users were denied from entering an attraction: %d\n", usersDenied);
+    fprintf(file, "Current active attractions: %d\n", activeAttractions);
+    fprintf(file, "Current active rides: %d\n", activeRides);
+    fprintf(file, "-------------------------------------------------------------------------------------\n");
+    
+    fclose(file);
+}
 
 void simulatorEvent_STARTED_handler(Event event){
     char* eventInString = eventToString(event,NULL);
     printWithColor(255,165,0,eventInString);
 
-    //TODO:statistics and save in file
+    currentState="Started";
+    logParkState();
+    currentState="Ongoing";
+
 
     free(eventInString);
 }
@@ -17,7 +56,9 @@ void simulatorEvent_ENDED_handler(Event event){
     char* eventInString = eventToString(event,NULL);
     printWithColor(255,165,0,eventInString);
 
-    //TODO:statistics and save in file
+    currentState="Ended";
+    logParkState();
+
     free(eventInString);
 }
 
@@ -25,6 +66,8 @@ void simulatorEvent_USER_CREATED_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_SimulationUserCreated);
     printWithColor(255,165,0,eventInString);
 
+    usersCreated++;
+    logParkState();
     //TODO:statistics and save in file
     free(eventInString);
 }
@@ -67,7 +110,8 @@ void parkEvent_PARK_OPEN_handler(Event event){
     char* eventInString = eventToString(event,NULL);
     printWithColor(255,0,213,eventInString);
 
-    //TODO:statistics and save in file
+    currentParkState="Open";
+    logParkState();
 
     free(eventInString);
 }
@@ -76,7 +120,8 @@ void parkEvent_PARK_CLOSED_handler(Event event){
     char* eventInString = eventToString(event,NULL);
     printWithColor(255,0,213,eventInString);
 
-    //TODO:statistics and save in file
+    currentParkState="Closed";
+    logParkState();
 
     free(eventInString);
 }
@@ -113,7 +158,8 @@ void attractionEvent_ATTRACTION_OPEN_handler(Event event){
 
     EventInfo_AttractionEvent eventInfo = getInfoEvent_AttractionEvent(&event);
 
-    //TODO:statistics
+    activeAttractions++;
+    logParkState();
 
     free(eventInString);
 }
@@ -123,8 +169,9 @@ void attractionEvent_ATTRACTION_CLOSED_handler(Event event){
     printWithColor(200,0,0,eventInString);
 
     EventInfo_AttractionEvent eventInfo = getInfoEvent_AttractionEvent(&event);
-
-    //TODO:statistics
+    
+    activeAttractions--;
+    logParkState();
 
     free(eventInString);
 }
@@ -135,7 +182,8 @@ void attractionEvent_ATTRACTION_RIDE_STARTED_handler(Event event){
 
     EventInfo_AttractionRideEvent eventInfo = getInfoEvent_AttractionRideEvent(&event);
 
-    //TODO:statistics
+    activeRides++;
+    logParkState();
 
     free(eventInString);
 }
@@ -146,7 +194,8 @@ void attractionEvent_ATTRACTION_RIDE_ENDED_handler(Event event){
 
     EventInfo_AttractionRideEvent eventInfo = getInfoEvent_AttractionRideEvent(&event);
 
-    //TODO:statistics
+    activeRides--;
+    logParkState();
 
     free(eventInString);
 }
@@ -189,7 +238,8 @@ void userEvent_ENTERING_PARK_handler(Event event){
 
     EventInfo_UserEventPark eventInfo = getInfoEvent_UserEventPark(&event);
 
-    //TODO:statistics
+    usersInside++;
+    logParkState();
 
     free(eventInString);
 }
@@ -200,7 +250,9 @@ void userEvent_LEAVING_PARK_handler(Event event){
 
     EventInfo_UserEventPark eventInfo = getInfoEvent_UserEventPark(&event);
 
-    //TODO:statistics
+    usersInside--;
+    usersLeft++;
+    logParkState();
 
     free(eventInString);
 }
@@ -211,7 +263,8 @@ void userEvent_ENTERING_WAITING_LINE_handler(Event event){
 
     EventInfo_UserEventWaitingLine eventInfo = getInfoEvent_UserEventWaitingLine(&event);
 
-    //TODO:statistics
+    usersInWaitingLine++;
+    logParkState();
 
     free(eventInString);
 }
@@ -222,7 +275,8 @@ void userEvent_LEAVING_WAITING_LINE_handler(Event event){
 
     EventInfo_UserEventWaitingLine eventInfo = getInfoEvent_UserEventWaitingLine(&event);
 
-    //TODO:statistics
+    usersInWaitingLine--;
+    logParkState();
 
     free(eventInString);
 }
@@ -233,7 +287,8 @@ void userEvent_ENTERING_RIDE_handler(Event event){
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
-    //TODO:statistics
+    usersInRide++;
+    logParkState();
 
     free(eventInString);
 }
@@ -244,7 +299,8 @@ void userEvent_LEAVING_RIDE_handler(Event event){
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
-    //TODO:statistics
+    usersInRide--;
+    logParkState();
 
     free(eventInString);
 }
@@ -255,7 +311,8 @@ void userEvent_LEAVING_ATTRACTION_handler(Event event){
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
-    //TODO:statistics
+    usersInWaitingLine--;
+    logParkState();
 
     free(eventInString);
 }
@@ -266,7 +323,8 @@ void userEvent_USING_VIP_handler(Event event){
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
-    //TODO:statistics
+    currentVIP++;
+    logParkState();
 
     free(eventInString);
 }
@@ -277,7 +335,8 @@ void userEvent_ENTERING_DENIED_handler(Event event){
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
-    //TODO:statistics
+    usersDenied++;
+    logParkState();
 
     free(eventInString);
 }
