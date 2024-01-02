@@ -319,7 +319,6 @@ void enterAttraction(User *client, Attraction *attraction)
         EventInfo_UserEvent eventInfoVip;
         
         lockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
-        assert(attraction != NULL)
         currentAux=attraction->waitingLine.first;
         previousAux=NULL;
         if(currentAux==NULL){

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
+#include <execinfo.h>
 
 #include "file_loadConf.h"
 #include "../common/linked_list.h"
@@ -23,8 +25,36 @@ void endSimulation();
 void startCountingDays();
 void startSimulator();
 
+void segmentationFaultHandler(int signalNumber){
+    void *array[10];
+    size_t size;
+    FILE *f;
+
+    // Open a file to write the addresses and symbols
+    f = fopen("stack_trace.txt", "w");
+    if (f == NULL) {
+        printError("Failed to open stack_trace.txt");
+        exit(EXIT_FAILURE);
+    }
+
+    // Get void*'s for all entries on the stack
+    size = backtrace(array, 10);
+
+    // Write out all the frames to the file
+    char **symbols = backtrace_symbols(array, size);
+    for (size_t i = 0; i < size; i++) {
+        fprintf(f, "%s\n", symbols[i]);
+    }
+
+    free(symbols);
+    fclose(f);
+    exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[])
 {
+    signal(SIGSEGV,segmentationFaultHandler);
+    
     // Initialize the random generator
     srand((unsigned)time(NULL));
 

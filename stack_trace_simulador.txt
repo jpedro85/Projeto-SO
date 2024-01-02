@@ -1,0 +1,6 @@
+./build/simulador(+0x5464) [0x556d2fefe464]
+/lib/x86_64-linux-gnu/libc.so.6(+0x42520) [0x7ff5bd056520]
+./build/simulador(+0x8c83) [0x556d2ff01c83]
+./build/simulador(+0x5bdc) [0x556d2fefebdc]
+/lib/x86_64-linux-gnu/libc.so.6(+0x94ac3) [0x7ff5bd0a8ac3]
+/lib/x86_64-linux-gnu/libc.so.6(+0x126660) [0x7ff5bd13a660]
