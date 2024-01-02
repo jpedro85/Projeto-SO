@@ -380,9 +380,17 @@ void enterAttraction(User *client, Attraction *attraction)
 void enterAttractionRide(User *client, Attraction *attraction)
 {
     printSuccess("User entered ride");
-
+    ListItem* clientItem;
+    User* clientAux;
+    int index = 0;
     lockMutex(&(attraction->waitingLine_mutex_t), "waitingLine_mutex_t");
-    removeItemByIndex_LinkedList(&(attraction->waitingLine), 0);
+    ForEach_LinkedList((&(attraction->waitingLine)),clientItem){
+        clientAux = (User*)(clientItem->value);
+        if(clientAux->id == client->id)
+            break;
+        index++;
+    }
+    removeItemByIndex_LinkedList(&(attraction->waitingLine), index);
     unlockMutex(&(attraction->waitingLine_mutex_t), "waitingLine_mutex_t");
 
     int currentAttendance = 0;
