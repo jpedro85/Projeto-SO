@@ -119,6 +119,18 @@ int vasprintf(char **strp, const char *fmt, va_list ap)
     return (r);
 }
 
+/**
+ * The function `asprintf` is a variadic function that allocates a string and formats it according to
+ * the provided format string and arguments.
+ * 
+ * @param strp strp is a pointer to a pointer to a character array. It is used to store the resulting
+ * string created by the function.
+ * @param fmt The `fmt` parameter is a format string that specifies how the subsequent arguments should
+ * be formatted and inserted into the resulting string. It is similar to the format string used in
+ * functions like `printf` and `sprintf`.
+ * 
+ * @return an integer value.
+ */
 int asprintf(char **strp, const char *fmt, ...)
 {
     int r;
