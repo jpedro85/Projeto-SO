@@ -63,8 +63,6 @@ void startSimulation()
     simulationStatus = STARTING;
     rwlock_init(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
     
-    startParkSimulation();
-    startAttractionSimulation();
 
     writelock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
     clock_gettime(CLOCK_REALTIME,&startTime);
@@ -72,7 +70,9 @@ void startSimulation()
     printInfo("Started");
     rwlock_unlock(&simulationStatus_rwlock_t,"simulationStatus_rwlock_t");
 
-    startClientSimulation();
+    startParkSimulation();
+    startAttractionSimulation();
+    //startClientSimulation();
     
     Event event = createEvent(SIMULATOR_EVENT,SIMULATION_STARTED,getCurrentSimulationDate(startTime,simulationConf.dayLength_s));
     addMsgToQueue(eventToJSON_String(event,0));

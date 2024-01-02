@@ -210,13 +210,13 @@ void semWait(sem_t *sem, char* name){
     }
 }
 
-int trySemWait(sem_t *sem, char* name){
-    int error = 0;
-    error = sem_wait(sem);
-    if(error != EAGAIN && error != 0){
-        printf("\033[1;31m Can not tryWait at %s Semaphore %d\033[1;0m",name,error); 
-        printFatalError("");
-        return -1;
-    }else
-        return error;
-}
+// int trySemWait(sem_t *sem, char* name){
+//     int error = 0;
+//     error = sem_wait(sem);
+//     if(error != EAGAIN && error != 0){
+//         printf("\033[1;31m Can not tryWait at %s Semaphore %d\033[1;0m",name,error); 
+//         printFatalError("");
+//         return -1;
+//     }else
+//         return error;
+// }

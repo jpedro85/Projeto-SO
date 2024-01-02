@@ -16,8 +16,8 @@ int activeRides = 0;
 int currentVIP = 0;
 int usersDenied = 0;
 
-void logParkState() {
-    FILE *file = fopen("relatorio.txt", "at");
+void logParkState(Event event) {
+    FILE *file = fopen("relatorio.txt", "a");
     if (file == NULL) {
         printf("Error opening file!\n");
         exit(1);
@@ -26,8 +26,9 @@ void logParkState() {
     fseek(file, 0, SEEK_END); 
 
     fprintf(file, "Current Simulation State: %s\n", currentState);
+    fprintf(file, "Current Simulation Time: D:%d H:%d M:%d \n", event.date.day, event.date.hour, event.date.minute);
     fprintf(file, "Current Park State: %s\n", currentParkState);
-    fprintf(file, "Number of created: %d\n", usersCreated);
+    fprintf(file, "Number of users created: %d\n", usersCreated);
     fprintf(file, "Number of usages of VIP: %d\n", currentVIP);
     fprintf(file, "Number of users inside the park: %d\n", usersInside);
     fprintf(file, "Number of users in a waiting line: %d\n", usersInWaitingLine);
@@ -45,9 +46,8 @@ void simulatorEvent_STARTED_handler(Event event){
     printWithColor(255,165,0,eventInString);
 
     currentState="Started";
-    logParkState();
+    logParkState(event);
     currentState="Ongoing";
-
 
     free(eventInString);
 }
@@ -57,7 +57,7 @@ void simulatorEvent_ENDED_handler(Event event){
     printWithColor(255,165,0,eventInString);
 
     currentState="Ended";
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -67,8 +67,8 @@ void simulatorEvent_USER_CREATED_handler(Event event){
     printWithColor(255,165,0,eventInString);
 
     usersCreated++;
-    logParkState();
-    //TODO:statistics and save in file
+    logParkState(event);
+
     free(eventInString);
 }
 
@@ -111,7 +111,7 @@ void parkEvent_PARK_OPEN_handler(Event event){
     printWithColor(255,0,213,eventInString);
 
     currentParkState="Open";
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -121,7 +121,7 @@ void parkEvent_PARK_CLOSED_handler(Event event){
     printWithColor(255,0,213,eventInString);
 
     currentParkState="Closed";
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -159,7 +159,7 @@ void attractionEvent_ATTRACTION_OPEN_handler(Event event){
     EventInfo_AttractionEvent eventInfo = getInfoEvent_AttractionEvent(&event);
 
     activeAttractions++;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -171,7 +171,7 @@ void attractionEvent_ATTRACTION_CLOSED_handler(Event event){
     EventInfo_AttractionEvent eventInfo = getInfoEvent_AttractionEvent(&event);
     
     activeAttractions--;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -183,7 +183,7 @@ void attractionEvent_ATTRACTION_RIDE_STARTED_handler(Event event){
     EventInfo_AttractionRideEvent eventInfo = getInfoEvent_AttractionRideEvent(&event);
 
     activeRides++;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -195,7 +195,7 @@ void attractionEvent_ATTRACTION_RIDE_ENDED_handler(Event event){
     EventInfo_AttractionRideEvent eventInfo = getInfoEvent_AttractionRideEvent(&event);
 
     activeRides--;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -239,7 +239,7 @@ void userEvent_ENTERING_PARK_handler(Event event){
     EventInfo_UserEventPark eventInfo = getInfoEvent_UserEventPark(&event);
 
     usersInside++;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -252,7 +252,7 @@ void userEvent_LEAVING_PARK_handler(Event event){
 
     usersInside--;
     usersLeft++;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -264,7 +264,7 @@ void userEvent_ENTERING_WAITING_LINE_handler(Event event){
     EventInfo_UserEventWaitingLine eventInfo = getInfoEvent_UserEventWaitingLine(&event);
 
     usersInWaitingLine++;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -276,7 +276,7 @@ void userEvent_LEAVING_WAITING_LINE_handler(Event event){
     EventInfo_UserEventWaitingLine eventInfo = getInfoEvent_UserEventWaitingLine(&event);
 
     usersInWaitingLine--;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -288,7 +288,7 @@ void userEvent_ENTERING_RIDE_handler(Event event){
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
     usersInRide++;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -300,7 +300,7 @@ void userEvent_LEAVING_RIDE_handler(Event event){
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
     usersInRide--;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -312,7 +312,7 @@ void userEvent_LEAVING_ATTRACTION_handler(Event event){
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
     usersInWaitingLine--;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -324,7 +324,7 @@ void userEvent_USING_VIP_handler(Event event){
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
     currentVIP++;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }
@@ -336,7 +336,7 @@ void userEvent_ENTERING_DENIED_handler(Event event){
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
     usersDenied++;
-    logParkState();
+    logParkState(event);
 
     free(eventInString);
 }

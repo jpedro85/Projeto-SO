@@ -22,7 +22,7 @@ int main(int argc , char *argv[] ){
 
     printWarning("Monitor Started !");
 
-    FILE *file = fopen("relatorio.txt", "wt");
+    FILE *file = fopen("relatorio.txt", "w");
     if (file == NULL) {
         fprintf(stderr, "Failed to open the file for writing.\n");
         return 1; // Return an error code to indicate failure
@@ -36,6 +36,7 @@ int main(int argc , char *argv[] ){
     while(1){
         
         str = recvMsg(serverSocket,512,4);
+        printError("Bla bla bla! Richy 2024");
         if(str == NULL){
 
             if(errno == CONNECTION_CLOSED)
@@ -74,8 +75,6 @@ int main(int argc , char *argv[] ){
             }
         }
     }
-
-    fclose(file); // Close the file
 
     closeConnection();
     printSuccess("Monitor terminated successfully");

@@ -39,7 +39,7 @@ void closePark(void* param){
     writelock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
     park.isOpen = false;
     rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
-
+    
     printOption("closePark called");
     asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_CLOSED,addMsgToQueue);
 }

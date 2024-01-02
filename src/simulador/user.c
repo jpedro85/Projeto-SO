@@ -137,9 +137,8 @@ void *simulateUserActions(void *client) {
             User* firstInLine =(User*) getValueByIndex_LInkedList(&(parsedClient->currentAttraction->waitingLine),0);
             unlockMutex(&(parsedClient->currentAttraction->waitingLine_mutex_t),"waitingLine_mutex_t");
             if(firstInLine->id==parsedClient->id){
-                if(trySemWait(&(parsedClient->currentAttraction->enterRide_sem_t),"enterRide_sem_t")==0){
-                    enterAttractionRide(parsedClient, parsedClient->currentAttraction);
-                }
+                semWait(&(parsedClient->currentAttraction->enterRide_sem_t),"enterRide_sem_t");
+                enterAttractionRide(parsedClient, parsedClient->currentAttraction);
             }
         }
         
