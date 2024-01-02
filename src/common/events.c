@@ -91,8 +91,6 @@ char* eventToJSON_String(Event event ,int eventInfo_estimatedSize){
     cJSON_AddNumberToObject(eventJson,"minute",event.date.minute);
 
     if(event.eventInfoJson){
-        // TODO: remove warning after all events are tested
-        printWarning("Has EventInfo");
         cJSON_AddItemToObject(eventJson,"eventInfo",event.eventInfoJson);
     }
 
@@ -189,8 +187,6 @@ void* asyncCreateEvent( void* createEvent_AsyncParam){
 
         param_creatEvent->function_CreateEventInfo(param);
         free(param.eventInfo);
-        // TODO: remove warning after all events are tested
-        printWarning("Freeing EventInfo");
     }
 
     param_creatEvent->function_EventMsgHandler( eventToJSON_String( event, param_creatEvent->EstimatedSize) );
