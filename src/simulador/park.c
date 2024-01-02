@@ -48,7 +48,7 @@ void closePark(void* param){
  */
 void startPark(){
     semInit(&(park.parkVacancy_sem_t),park.parkCapacity,"parkVacancy_sem_t");
-    park.isOpen = false;
+    park.isOpen = true;
 }
 
 /**
