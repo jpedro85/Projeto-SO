@@ -35,7 +35,6 @@ void openPark(void* param){
  * In this case, it is not used in the function and can be ignored.
  */
 void closePark(void* param){
-    //TODO: Cancel thread and unlock all mutexes
     writelock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
     park.isOpen = false;
     rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");

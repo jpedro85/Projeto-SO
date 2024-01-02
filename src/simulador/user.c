@@ -4,6 +4,7 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "user.h"
 #include "socketServer/socketServer.h"
@@ -14,6 +15,8 @@
 #include "../common/linked_list.h"
 #include "attraction.h"
 #include "globals.h"
+
+#define LEAVE_ATTRACTION_CHANCE 20
 
 int id = 0;
 typedef enum{
@@ -139,6 +142,7 @@ void *simulateUserActions(void *client) {
             if(firstInLine->id==parsedClient->id){
                 semWait(&(parsedClient->currentAttraction->enterRide_sem_t),"enterRide_sem_t");
                 enterAttractionRide(parsedClient, parsedClient->currentAttraction);
+                usleep(1000*simulationConf.userMinWaitingTime_ms);
             }
         }
         
@@ -228,7 +232,7 @@ int chooseAction(User *user)
             }
         break;
         case IN_WAITING_LINE:
-            return (((rand() % 100) + 1) <= 20) ? LEAVE_ATTRACTION : STAY_AT_ATTRACTION;
+            return (((rand() % 100) + 1) <= LEAVE_ATTRACTION_CHANCE) ? LEAVE_ATTRACTION : STAY_AT_ATTRACTION;
         break;
         case IN_PARK:
             return (((rand() % 100) + 1) <= simulationConf.userLeaveChance_percentage) ? LEAVE_PARK : STAY_AT_PARK;

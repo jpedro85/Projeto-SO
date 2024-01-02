@@ -13,6 +13,8 @@
 #include "schedule.h"
 #include "../common/date.h"
 
+#include <assert.h>
+
 /**
  * The function "beginRide" waits for certain conditions to be met before starting a ride at an
  * attraction.
@@ -317,6 +319,7 @@ void enterAttraction(User *client, Attraction *attraction)
         EventInfo_UserEvent eventInfoVip;
         
         lockMutex(&attraction->waitingLine_mutex_t, "waitingLine_mutex_t");
+        assert(attraction != NULL)
         currentAux=attraction->waitingLine.first;
         previousAux=NULL;
         if(currentAux==NULL){
@@ -337,10 +340,10 @@ void enterAttraction(User *client, Attraction *attraction)
                     break;
                 }   
                 else if(!currentClient->vipPass){
-                    clientItemAux=previousAux;
-                    previousAux=(ListItem*) malloc(sizeof(ListItem));
-                    previousAux->next=clientItemAux;
-                    previousAux->value=client;
+
+                    previousAux->next = (ListItem*) malloc(sizeof(ListItem));
+                    previousAux->next->value = client;
+                    previousAux->next->next = currentAux;
                     attraction->waitingLine.length++;
                     added=1;
                     break;
@@ -373,8 +376,6 @@ void enterAttraction(User *client, Attraction *attraction)
     client->state = IN_WAITING_LINE;
     client->currentAttraction = attraction;
     asyncCreateEvent_UserEventWaitingLine(getCurrentSimulationDate(startTime, simulationConf.dayLength_s), eventInfo, ENTERING_WAITING_LINE, 5, addMsgToQueue);
-    
-    usleep((simulationConf.dayLength_ms/24/60)*5000);
 }
 
 void enterAttractionRide(User *client, Attraction *attraction)
@@ -382,7 +383,6 @@ void enterAttractionRide(User *client, Attraction *attraction)
     printSuccess("User entered ride");
 
     lockMutex(&(attraction->waitingLine_mutex_t), "waitingLine_mutex_t");
-    // TODO: Verify requirements if all users that enter the ride are in the first position of the list. Before calling wait at the semaphore.
     removeItemByIndex_LinkedList(&(attraction->waitingLine), 0);
     unlockMutex(&(attraction->waitingLine_mutex_t), "waitingLine_mutex_t");
 

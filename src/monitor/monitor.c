@@ -4,7 +4,6 @@
 #include <string.h>
 #include <errno.h>
 
-#include "registo.h"
 #include "../common/consoleAddons.h"
 #include "socketClient.h"
 #include "../common/socketUtils/socketComms.h"
@@ -36,7 +35,6 @@ int main(int argc , char *argv[] ){
     while(1){
         
         str = recvMsg(serverSocket,512,4);
-        printError("Bla bla bla! Richy 2024");
         if(str == NULL){
 
             if(errno == CONNECTION_CLOSED)
@@ -69,7 +67,7 @@ int main(int argc , char *argv[] ){
 
                 printf("\n");
             }else{
-                 printWarning("NOT Reading an Event");
+                printWarning("NOT Reading an Event");
                 printWarning(str);
                 // free(str);
             }
