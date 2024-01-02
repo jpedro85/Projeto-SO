@@ -42,15 +42,21 @@ void closePark(void* param){
     printOption("closePark called");
     asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_CLOSED,addMsgToQueue);
 
-    Date date = getCurrentSimulationDate(startTime,simulationConf.dayLength_s);
-    if(date.hour>=1 && date.hour<23){
-        writelock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
-        park.isOpen = true;
-        rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+    // int elapsedTime = getCurrentTime_ms(startTime);
+    // int actualDay = (elapsedTime / simulationConf.dayLength_ms);
+    // int elapsedTime_mod = elapsedTime % simulationConf.dayLength_ms;
+    
+    // int firstOpen = ((Schedule*)getValueByIndex_LInkedList(&(park.scheduleList),0))->startTime_ms;
+    // int lastClose = ((Schedule*)getValueByIndex_LInkedList(&(park.scheduleList),park.scheduleList.length -1))->startTime_ms;
 
-        printOption("openPark called");
-        asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_OPEN,addMsgToQueue);
-    }
+    // if(elapsedTime_mod >= firstOpen && elapsedTime_mod<lastClose){
+    //     writelock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+    //     park.isOpen = true;
+    //     rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+
+    //     printOption("openPark called");
+    //     asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_OPEN,addMsgToQueue);
+    // }
 }
 
 /**
