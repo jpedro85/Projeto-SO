@@ -36,6 +36,12 @@ void *createParkClients()
     printWarning("server: started creating users.");
     while (getCurrentSimulationDate(startTime, simulationConf.dayLength_s).day<simulationConf.numberOfDaysToSimulate)
     {
+        Date currentDate=getCurrentSimulationDate(startTime, simulationConf.dayLength_s);
+        if (currentDate.hour >= 1 && currentDate.hour < 23 && !park.isOpen) {
+            writelock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+            park.isOpen = true;
+            rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+        }
         // Randomizes arrival time between the clients
         int userWaitingTime = rand() % (simulationConf.averageClientArriveTime_ms - simulationConf.toleranceClientArriveTime_ms) + simulationConf.toleranceClientArriveTime_ms;
         // Converting waitTime thats in ms to microsecond as usleep works with that unit of time

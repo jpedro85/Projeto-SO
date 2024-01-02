@@ -41,6 +41,16 @@ void closePark(void* param){
     
     printOption("closePark called");
     asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_CLOSED,addMsgToQueue);
+
+    Date date = getCurrentSimulationDate(startTime,simulationConf.dayLength_s);
+    if(date.hour>=1 && date.hour<23){
+        writelock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+        park.isOpen = true;
+        rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+
+        printOption("openPark called");
+        asyncCreateEvent_WithoutInfo(getCurrentSimulationDate(startTime,simulationConf.dayLength_s),PARK_EVENT,PARK_OPEN,addMsgToQueue);
+    }
 }
 
 /**
@@ -48,7 +58,10 @@ void closePark(void* param){
  */
 void startPark(){
     semInit(&(park.parkVacancy_sem_t),park.parkCapacity,"parkVacancy_sem_t");
-    park.isOpen = true;
+    writelock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+    park.isOpen = false;
+    rwlock_unlock(&(park.parkIsOpen_rwlock_t),"parkIsOpen_rwlock_t");
+
 }
 
 /**
