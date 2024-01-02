@@ -28,6 +28,13 @@ int main(int argc , char *argv[] ){
     }
     fclose(file);
 
+    FILE *file = fopen("historico.txt", "w");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to open the file for writing.\n");
+        return 1; // Return an error code to indicate failure
+    }
+    fclose(file);
+
     creatConnection();
 
     char* str = NULL;

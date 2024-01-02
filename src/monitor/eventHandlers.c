@@ -41,9 +41,24 @@ void logParkState(Event event) {
     fclose(file);
 }
 
+void logHistoric(char * eventText){
+    FILE *file = fopen("historico.txt", "a");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    fseek(file, 0, SEEK_END); 
+
+    fprintf(file, "%s",eventText);
+    
+    fclose(file);
+}
+
 void simulatorEvent_STARTED_handler(Event event){
     char* eventInString = eventToString(event,NULL);
     printWithColor(255,165,0,eventInString);
+    logHistoric(eventInString);
 
     currentState="Started";
     logParkState(event);
@@ -55,6 +70,7 @@ void simulatorEvent_STARTED_handler(Event event){
 void simulatorEvent_ENDED_handler(Event event){
     char* eventInString = eventToString(event,NULL);
     printWithColor(255,165,0,eventInString);
+    logHistoric(eventInString);
 
     currentState="Ended";
     logParkState(event);
@@ -65,6 +81,7 @@ void simulatorEvent_ENDED_handler(Event event){
 void simulatorEvent_USER_CREATED_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_SimulationUserCreated);
     printWithColor(255,165,0,eventInString);
+    logHistoric(eventInString);
 
     usersCreated++;
     logParkState(event);
@@ -109,6 +126,7 @@ void simulatorEvents_handler(Event event){
 void parkEvent_PARK_OPEN_handler(Event event){
     char* eventInString = eventToString(event,NULL);
     printWithColor(255,0,213,eventInString);
+    logHistoric(eventInString);
 
     currentParkState="Open";
     logParkState(event);
@@ -119,6 +137,7 @@ void parkEvent_PARK_OPEN_handler(Event event){
 void parkEvent_PARK_CLOSED_handler(Event event){
     char* eventInString = eventToString(event,NULL);
     printWithColor(255,0,213,eventInString);
+    logHistoric(eventInString);
 
     currentParkState="Closed";
     logParkState(event);
@@ -155,6 +174,7 @@ void parkEvents_handler(Event event){
 void attractionEvent_ATTRACTION_OPEN_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_AttractionEvent);
     printWithColor(200,0,0,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_AttractionEvent eventInfo = getInfoEvent_AttractionEvent(&event);
 
@@ -167,6 +187,7 @@ void attractionEvent_ATTRACTION_OPEN_handler(Event event){
 void attractionEvent_ATTRACTION_CLOSED_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_AttractionEvent);
     printWithColor(200,0,0,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_AttractionEvent eventInfo = getInfoEvent_AttractionEvent(&event);
     
@@ -179,6 +200,7 @@ void attractionEvent_ATTRACTION_CLOSED_handler(Event event){
 void attractionEvent_ATTRACTION_RIDE_STARTED_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_AttractionRideEvent);
     printWithColor(200,0,100,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_AttractionRideEvent eventInfo = getInfoEvent_AttractionRideEvent(&event);
 
@@ -191,6 +213,7 @@ void attractionEvent_ATTRACTION_RIDE_STARTED_handler(Event event){
 void attractionEvent_ATTRACTION_RIDE_ENDED_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_AttractionRideEvent);
     printWithColor(200,0,100,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_AttractionRideEvent eventInfo = getInfoEvent_AttractionRideEvent(&event);
 
@@ -235,6 +258,7 @@ void attractionEvents_handler(Event event){
 void userEvent_ENTERING_PARK_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEventPark);
     printWithColor(255,255,255,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEventPark eventInfo = getInfoEvent_UserEventPark(&event);
 
@@ -247,6 +271,7 @@ void userEvent_ENTERING_PARK_handler(Event event){
 void userEvent_LEAVING_PARK_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEventPark);
     printWithColor(255,255,255,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEventPark eventInfo = getInfoEvent_UserEventPark(&event);
 
@@ -260,6 +285,7 @@ void userEvent_LEAVING_PARK_handler(Event event){
 void userEvent_ENTERING_WAITING_LINE_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEventWaitingLine);
     printWithColor(0,255,0,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEventWaitingLine eventInfo = getInfoEvent_UserEventWaitingLine(&event);
 
@@ -272,6 +298,7 @@ void userEvent_ENTERING_WAITING_LINE_handler(Event event){
 void userEvent_LEAVING_WAITING_LINE_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEventWaitingLine);
     printWithColor(0,255,0,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEventWaitingLine eventInfo = getInfoEvent_UserEventWaitingLine(&event);
 
@@ -284,6 +311,7 @@ void userEvent_LEAVING_WAITING_LINE_handler(Event event){
 void userEvent_ENTERING_RIDE_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEvent);
     printWithColor(0,255,255,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
@@ -296,6 +324,7 @@ void userEvent_ENTERING_RIDE_handler(Event event){
 void userEvent_LEAVING_RIDE_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEvent);
     printWithColor(0,255,255,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
@@ -308,6 +337,7 @@ void userEvent_LEAVING_RIDE_handler(Event event){
 void userEvent_LEAVING_ATTRACTION_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEvent);
     printWithColor(0,0,255,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
@@ -320,6 +350,7 @@ void userEvent_LEAVING_ATTRACTION_handler(Event event){
 void userEvent_USING_VIP_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEvent);
     printWithColor(0,150,150,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
@@ -332,6 +363,7 @@ void userEvent_USING_VIP_handler(Event event){
 void userEvent_ENTERING_DENIED_handler(Event event){
     char* eventInString = eventToString(event,extractEvent_UserEvent);
     printWithColor(0,150,150,eventInString);
+    logHistoric(eventInString);
 
     EventInfo_UserEvent eventInfo = getInfoEvent_UserEvent(&event);
 
